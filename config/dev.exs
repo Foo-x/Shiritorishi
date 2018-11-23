@@ -51,8 +51,8 @@ config :phoenix, :stacktrace_depth, 20
 # Configure your database
 config :shiritorishi, Shiritorishi.Repo,
   adapter: Ecto.Adapters.MySQL,
-  username: "root",
-  password: "",
+  username: "shiritorishi",
+  password: "shiritorishi",
   database: "shiritorishi_dev",
   hostname: "localhost",
   pool_size: 10
