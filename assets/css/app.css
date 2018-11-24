@@ -1,1 +1,60 @@
-/* This file is for your main application css. */
+.navbar.shi-navbar {
+  background-color: #333333;
+  color: #f5f5f5;
+}
+
+.shi-primary {
+  background-color: #F5A623;
+}
+
+.shi-secondary {
+  background-color: #F5C87F;
+}
+
+.shi-tertiary {
+  background-color: #F5E6CE;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.button.transparent,
+.button.transparent:hover {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+#shi-navbar-menu {
+  background-color: transparent;
+  padding: initial;
+}
+
+/* https://github.com/jgthms/bulma/issues/1445#issuecomment-345503099 */
+.navbar-item {
+  display: flex;
+}
+
+.navbar,
+.navbar-menu,
+.navbar-start,
+.navbar-end {
+  align-items: stretch;
+  display: flex;
+  padding: 0;
+}
+
+.navbar-menu {
+  flex-grow: 1;
+  flex-shrink: 0;
+}
+
+.navbar-start {
+  justify-content: flex-start;
+  margin-right: auto;
+}
+
+.navbar-end {
+  justify-content: flex-end;
+  margin-left: auto;
+}
