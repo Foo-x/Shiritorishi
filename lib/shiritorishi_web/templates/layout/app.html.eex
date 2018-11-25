@@ -8,6 +8,8 @@
     <meta name="author" content="">
 
     <title>しりとりし</title>
+    <link rel="icon" href="/images/favicon.ico">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png" sizes="180x180">
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css">
     <script defer src="https://use.fontawesome.com/releases/v5.4.1/js/solid.js" integrity="sha384-agDKwSYPuGlC0wD14lKXXwb94jlUkbkoSugquwmKRKWv/nDXe1kApDS/gqUlRQmZ" crossorigin="anonymous"></script>
