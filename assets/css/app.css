@@ -31,6 +31,10 @@
   background-color: #F5E6CE;
 }
 
+.shi-primary-dark-text {
+  color: #ed9e00 !important;
+}
+
 .pointer {
   cursor: pointer;
 }
@@ -51,6 +55,16 @@
 
 .relative {
   position: relative;
+}
+
+/* override */
+tbody th {
+  width: 33%;
+}
+
+tbody tr th,
+tbody tr td {
+  border-color: #F5E6CE !important;
 }
 
 /* https://github.com/jgthms/bulma/issues/1445#issuecomment-345503099 */
