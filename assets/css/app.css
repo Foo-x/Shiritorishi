@@ -1,10 +1,26 @@
+#shi-navbar-menu {
+  background-color: transparent;
+  padding: initial;
+}
+
+#shi-name,
+#shi-name-field {
+  margin-bottom: 0;
+}
+
+#shi-user-counts {
+  position: absolute;
+  right: .75rem;
+  bottom: .75rem;
+}
+
 .navbar.shi-navbar {
   background-color: #333333;
   color: #f5f5f5;
 }
 
 .shi-primary {
-  background-color: #F5A623;
+  background-color: #F5A623 !important;
 }
 
 .shi-secondary {
@@ -25,9 +41,16 @@
   border-color: transparent;
 }
 
-#shi-navbar-menu {
-  background-color: transparent;
-  padding: initial;
+.break-word {
+  overflow-wrap: break-word;
+}
+
+.is-vbottom {
+  align-items: baseline;
+}
+
+.relative {
+  position: relative;
 }
 
 /* https://github.com/jgthms/bulma/issues/1445#issuecomment-345503099 */

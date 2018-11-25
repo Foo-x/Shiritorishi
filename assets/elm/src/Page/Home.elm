@@ -1,8 +1,8 @@
 module Page.Home exposing (..)
 
 import Browser
-import Html exposing (Html, a, div, i, img, nav, section, span, text)
-import Html.Attributes exposing (attribute, class, height, href, id, src, width)
+import Html exposing (Html, a, div, i, img, input, label, nav, p, section, span, text)
+import Html.Attributes exposing (attribute, class, height, href, id, placeholder, src, type_, width)
 
 
 
@@ -25,8 +25,8 @@ view =
                     , href "/"
                     ]
                     [ img
-                        [ src "/images/brand-logo.svg"
-                        , width 32
+                        [ src "/images/brand-logo.png"
+                        , width 125
                         , height 32
                         ]
                         []
@@ -58,7 +58,80 @@ view =
             [ class "section" ]
             [ div
                 [ class "container" ]
-                [ text "Hello World!" ]
+                [ div
+                    [ class "is-size-1 has-text-centered has-text-weight-bold" ]
+                    [ p
+                        [ class "break-word" ]
+                        -- TODO: 動的にする
+                        [ text "かちょうふうげつ" ]
+                    ]
+                , div
+                    [ class "columns is-mobile" ]
+                    [ div
+                        [ class "column is-offset-1" ]
+                        [ div
+                            [ id "shi-name"
+                            , class "columns is-mobile"
+                            ]
+                            [ div
+                                [ id "shi-name-field"
+                                , class "column is-5 field"
+                                ]
+                                [ label
+                                    [ class "label is-small" ]
+                                    [ text "名前" ]
+                                , div
+                                    [ class "control" ]
+                                    [ input
+                                        [ class "input is-small"
+                                        , type_ "text"
+                                        , placeholder "名無し"
+                                        ]
+                                        []
+                                    ]
+                                ]
+                            , div
+                                [ class "column is-2 is-offset-4 relative" ]
+                                [ div
+                                    [ id "shi-user-counts"
+                                    , class "is-size-7 has-text-grey"
+                                    ]
+                                    [ span
+                                        [ class "icon is-small" ]
+                                        [ i
+                                            [ class "fas fa-user" ]
+                                            []
+                                        ]
+                                    -- TODO: 動的にする
+                                    , text "12"
+                                    ]
+                                ]
+                            ]
+                        , div
+                            [ class "columns is-mobile" ]
+                            [ div
+                                [ class "column is-11 field has-addons" ]
+                                [ div
+                                    [ class "control is-expanded" ]
+                                    [ input
+                                        [ class "input"
+                                        , type_ "text"
+                                        -- TODO: 動的にする
+                                        , placeholder "つ ..."
+                                        ]
+                                        []
+                                    ]
+                                , div
+                                    [ class "control" ]
+                                    [ a
+                                        [ class "button shi-primary has-text-white has-text-weight-semibold" ]
+                                        [ text "送信" ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
             ]
         ]
     }
