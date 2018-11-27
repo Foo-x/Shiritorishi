@@ -17,12 +17,12 @@ import Url
 
 type Model
     = NotFound Session
-    | Home Session
+    | Home Home.Model
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
-    changeRouteTo (Route.fromUrl url) (Home key)
+    changeRouteTo (Route.fromUrl url) (NotFound key)
 
 
 
@@ -35,8 +35,14 @@ view model =
         NotFound session ->
             NotFound.view
 
-        Home session ->
-            Home.view
+        Home home ->
+            let
+                { title, body } =
+                    Home.view home
+            in
+            { title = title
+            , body = List.map (Html.map HomeMsg) body
+            }
 
 
 
@@ -46,12 +52,13 @@ view model =
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
+    | HomeMsg Home.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        LinkClicked urlRequest ->
+    case ( msg, model ) of
+        ( LinkClicked urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
                     ( model, Nav.pushUrl (toSession model) (Url.toString url) )
@@ -59,8 +66,15 @@ update msg model =
                 Browser.External href ->
                     ( model, Nav.load href )
 
-        UrlChanged url ->
+        ( UrlChanged url, _ ) ->
             changeRouteTo (Route.fromUrl url) model
+        
+        ( HomeMsg subMsg, Home home ) ->
+            Home.update subMsg home
+                |> updateWith Home HomeMsg
+        
+        ( _, _ ) ->
+            ( model, Cmd.none )
 
 
 toSession : Model -> Session
@@ -69,8 +83,8 @@ toSession model =
         NotFound session ->
             session
 
-        Home session ->
-            session
+        Home home ->
+            Home.toSession home
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -84,16 +98,28 @@ changeRouteTo maybeRoute model =
             ( NotFound session, Cmd.none )
 
         Just Route.Home ->
-            ( Home session, Cmd.none)
+            Home.init session
+                |> updateWith Home HomeMsg
 
+
+updateWith : (subModel -> Model) -> (subMsg -> Msg) -> (subModel, Cmd subMsg) -> (Model, Cmd Msg)
+updateWith toModel toMsg ( subModel, subCmd ) =
+    ( toModel subModel
+    , Cmd.map toMsg subCmd
+    )
 
 
 -- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
+subscriptions model =
+    case model of
+        Home home ->
+            Sub.map HomeMsg (Home.subscriptions home)
+    
+        _ ->
+            Sub.none
 
 
 

@@ -20,6 +20,15 @@ import "phoenix_html"
 
 // import socket from "./socket"
 
-Elm.Main.init({
+import * as phoenix from "phoenix"
+
+import websocketPortsFactory from "elm-phoenix-websocket-ports"
+
+const socketAddress = "/socket"
+const websocketPorts = websocketPortsFactory(phoenix, socketAddress)
+
+const elm = Elm.Main.init({
   node: document.getElementById("elm-container")
 })
+
+websocketPorts.register(elm.ports)

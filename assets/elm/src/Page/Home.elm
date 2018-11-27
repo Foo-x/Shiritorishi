@@ -3,14 +3,45 @@ module Page.Home exposing (..)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick, onInput)
+import Json.Decode as D
+import Ports.Websocket as Websocket
+import Reply exposing (Reply, replyDecoder, replyEncoder)
+import Store.Session exposing (Session)
+
+
+
+-- MODEL
+
+
+type alias Model =
+    { session : Session
+    , user : String
+    , word : String
+    }
+
+
+init : Session -> (Model, Cmd Msg)
+init session =
+    ( { session = session
+      , user = ""
+      , word = ""
+      }
+    , Websocket.websocketListen ("room:lobby", "new_msg")
+    )
+
+
+toSession : Model -> Session
+toSession model =
+    model.session
 
 
 
 -- VIEW
 
 
-view : Browser.Document msg
-view =
+view : Model -> Browser.Document Msg
+view model =
     { title = "しりとりし"
     , body =
         [ nav
@@ -147,6 +178,7 @@ view =
                                         [ class "input is-small"
                                         , type_ "text"
                                         , placeholder "名無し"
+                                        , onInput UpdateUser
                                         ]
                                         []
                                     ]
@@ -179,13 +211,16 @@ view =
                                         , type_ "text"
                                         -- TODO: 動的にする
                                         , placeholder "つ ..."
+                                        , onInput UpdateWord
                                         ]
                                         []
                                     ]
                                 , div
                                     [ class "control" ]
-                                    [ a
-                                        [ class "button shi-primary has-text-white has-text-weight-semibold" ]
+                                    [ button
+                                        [ class "button shi-primary has-text-white has-text-weight-semibold"
+                                        , onClick (SendReply model.user model.word)
+                                        ]
                                         [ text "送信" ]
                                     ]
                                 ]
@@ -196,3 +231,45 @@ view =
             ]
         ]
     }
+
+
+
+-- UPDATE
+
+
+type Msg
+    = WebsocketReceive (String, String, D.Value)
+    | UpdateUser String
+    | UpdateWord String
+    | SendReply String String
+
+
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+    case msg of
+        WebsocketReceive ("room:lobby", "new_msg", payload) ->
+            case D.decodeValue replyDecoder payload of
+                Ok reply ->
+                    Debug.log "ok receive" ( model, Cmd.none )
+                Err _ ->
+                    Debug.log "error receive" ( model, Cmd.none )
+
+        WebsocketReceive (_, _, _) ->
+            Debug.log "other msg" ( model, Cmd.none )
+
+        UpdateUser user ->
+            ( { model | user = user }, Cmd.none )
+
+        UpdateWord word ->
+            ( { model | word = word }, Cmd.none )
+
+        SendReply user word ->
+            Debug.log "send reply" ( model, Websocket.websocketSend ( "room:lobby", "new_msg", replyEncoder user word ) )
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Websocket.websocketReceive WebsocketReceive
