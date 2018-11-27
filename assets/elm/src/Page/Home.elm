@@ -1,8 +1,8 @@
 module Page.Home exposing (..)
 
 import Browser
-import Html exposing (Html, a, div, i, img, input, label, nav, p, section, span, table, tbody, text, td, th, tr)
-import Html.Attributes exposing (attribute, class, height, href, id, placeholder, src, type_, width)
+import Html exposing (..)
+import Html.Attributes exposing (..)
 
 
 
@@ -55,7 +55,8 @@ view =
                 ]
             ]
         , section
-            [ class "section" ]
+            [ id "shi-main"
+            , class "section" ]
             [ div
                 [ class "container" ]
                 [ div
@@ -66,9 +67,69 @@ view =
                         [ text "かちょうふうげつ" ]
                     ]
                 , div
+                    [ class "is-divider" ]
+                    []
+                , div
                     [ class "columns is-mobile" ]
                     [ div
                         [ class "column is-offset-1" ]
+                        [ div
+                            [ class "columns is-mobile" ]
+                            [ div
+                                [ class "column is-11" ]
+                                [ table
+                                    [ class "table is-fullwidth" ]
+                                    [ tbody
+                                        []
+                                        -- TODO: 動的にする
+                                        [ tr
+                                            []
+                                            [ th
+                                                -- TODO: widthを動的にする
+                                                [ class "shi-primary-dark-text" ]
+                                                [ text "名無し" ]
+                                            , td
+                                                []
+                                                [ span
+                                                    []
+                                                    [ text "すい" ]
+                                                , span
+                                                    [ class "has-text-weight-bold" ]
+                                                    [ text "か" ]
+                                                ]
+                                            ]
+                                        , tr
+                                            []
+                                            [ th
+                                                [ class "shi-primary-dark-text" ]
+                                                [ text "名無し" ]
+                                            , td
+                                                []
+                                                [ span
+                                                    []
+                                                    [ text "から" ]
+                                                , span
+                                                    [ class "has-text-weight-bold" ]
+                                                    [ text "す" ]
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        , footer
+            [ id "shi-footer"
+            , class "footer" ]
+            [ div
+                [ class "columns is-mobile" ]
+                [ div
+                    [ class "column is-offset-1" ]
+                    [ div
+                        [ class "content" ]
                         [ div
                             [ id "shi-name"
                             , class "columns is-mobile"
@@ -126,50 +187,6 @@ view =
                                     [ a
                                         [ class "button shi-primary has-text-white has-text-weight-semibold" ]
                                         [ text "送信" ]
-                                    ]
-                                ]
-                            ]
-                        , div
-                            [ class "columns is-mobile" ]
-                            [ div
-                                [ class "column is-11" ]
-                                [ table
-                                    [ class "table is-fullwidth" ]
-                                    [ tbody
-                                        []
-                                        -- TODO: 動的にする
-                                        [ tr
-                                            []
-                                            [ th
-                                                -- TODO: widthを動的にする
-                                                [ class "shi-primary-dark-text" ]
-                                                [ text "名無し" ]
-                                            , td
-                                                []
-                                                [ span
-                                                    []
-                                                    [ text "すい" ]
-                                                , span
-                                                    [ class "has-text-weight-bold" ]
-                                                    [ text "か" ]
-                                                ]
-                                            ]
-                                        , tr
-                                            []
-                                            [ th
-                                                [ class "shi-primary-dark-text" ]
-                                                [ text "名無し" ]
-                                            , td
-                                                []
-                                                [ span
-                                                    []
-                                                    [ text "から" ]
-                                                , span
-                                                    [ class "has-text-weight-bold" ]
-                                                    [ text "す" ]
-                                                ]
-                                            ]
-                                        ]
                                     ]
                                 ]
                             ]

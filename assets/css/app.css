@@ -3,6 +3,10 @@
   padding: initial;
 }
 
+#shi-main {
+  flex: 1;
+}
+
 #shi-name,
 #shi-name-field {
   margin-bottom: 0;
@@ -12,6 +16,17 @@
   position: absolute;
   right: .75rem;
   bottom: .75rem;
+}
+
+#shi-footer {
+  background-color: initial;
+  padding: 1.5rem;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .navbar.shi-navbar {
