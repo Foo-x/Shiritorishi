@@ -1,6 +1,7 @@
 module Page.Home exposing (..)
 
 import Browser
+import Browser.Dom as Dom
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -8,6 +9,7 @@ import Json.Decode as D
 import Ports.Websocket as Websocket
 import Reply exposing (Reply, replyDecoder, replyEncoder)
 import Store.Session exposing (Session)
+import Task
 
 
 
@@ -18,7 +20,25 @@ type alias Model =
     { session : Session
     , user : String
     , word : String
+    , height : Float
     }
+
+
+brandLogo : List (Attribute msg)
+brandLogo =
+    [ src "/images/brand-logo.png"
+    , width 125
+    , height 32
+    ]
+
+
+footerHeight : Float
+footerHeight = 147
+
+
+createHeightStr : Model -> String
+createHeightStr model =
+    String.fromFloat model.height ++ "px"
 
 
 init : Session -> (Model, Cmd Msg)
@@ -26,8 +46,12 @@ init session =
     ( { session = session
       , user = ""
       , word = ""
+      , height = 0
       }
-    , Websocket.websocketListen ("room:lobby", "new_msg")
+    , Cmd.batch
+        [ Websocket.websocketListen ("room:lobby", "new_msg")
+        , updateHeight
+        ]
     )
 
 
@@ -56,10 +80,7 @@ view model =
                     , href "/"
                     ]
                     [ img
-                        [ src "/images/brand-logo.png"
-                        , width 125
-                        , height 32
-                        ]
+                        brandLogo
                         []
                     ]
                 ]
@@ -91,7 +112,7 @@ view model =
             [ div
                 [ class "container" ]
                 [ div
-                    [ class "is-size-1 has-text-centered has-text-weight-bold" ]
+                    [ class "is-size-2 has-text-centered has-text-weight-bold" ]
                     [ p
                         [ class "break-word" ]
                         -- TODO: 動的にする
@@ -107,7 +128,10 @@ view model =
                         [ div
                             [ class "columns is-mobile" ]
                             [ div
-                                [ class "column is-11" ]
+                                [ id "shi-replies"
+                                , class "column is-11"
+                                , style "max-height" (createHeightStr model)
+                                ]
                                 [ table
                                     [ class "table is-fullwidth" ]
                                     [ tbody
@@ -241,7 +265,18 @@ type Msg
     = WebsocketReceive (String, String, D.Value)
     | UpdateUser String
     | UpdateWord String
+    | UpdateHeight (Result Dom.Error Dom.Element)
     | SendReply String String
+
+
+updateHeight : Cmd Msg
+updateHeight =
+    Task.attempt UpdateHeight (Dom.getElement "shi-replies")
+
+
+calcHeight : Dom.Element -> Float
+calcHeight element =
+    element.viewport.height - element.element.y - footerHeight
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -250,7 +285,7 @@ update msg model =
         WebsocketReceive ("room:lobby", "new_msg", payload) ->
             case D.decodeValue replyDecoder payload of
                 Ok reply ->
-                    Debug.log "ok receive" ( model, Cmd.none )
+                    Debug.log ("ok receive: " ++ (Debug.toString reply)) ( model, updateHeight )
                 Err _ ->
                     Debug.log "error receive" ( model, Cmd.none )
 
@@ -265,6 +300,14 @@ update msg model =
 
         SendReply user word ->
             Debug.log "send reply" ( model, Websocket.websocketSend ( "room:lobby", "new_msg", replyEncoder user word ) )
+
+        UpdateHeight result ->
+            case result of
+                Ok element ->
+                    ( { model | height = calcHeight element }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 -- SUBSCRIPTIONS
