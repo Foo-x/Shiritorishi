@@ -13,14 +13,15 @@ defmodule ShiritorishiWeb.Router do
     plug :accepts, ["json"]
   end
 
+  scope "/api", ShiritorishiWeb do
+    pipe_through :api
+
+    resources "/public_replies", PublicReplyController, only: [:index, :create]
+  end
+
   scope "/", ShiritorishiWeb do
     pipe_through :browser # Use the default browser stack
 
     get "/*path", PageController, :index
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", ShiritorishiWeb do
-  #   pipe_through :api
-  # end
 end
