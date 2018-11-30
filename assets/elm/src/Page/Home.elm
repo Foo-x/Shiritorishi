@@ -18,6 +18,7 @@ import Task
 
 type alias Model =
     { session : Session
+    , public_replies : List Reply
     , user : String
     , word : String
     , height : Float
@@ -44,12 +45,14 @@ createHeightStr model =
 init : Session -> (Model, Cmd Msg)
 init session =
     ( { session = session
+      , public_replies = []
       , user = ""
       , word = ""
       , height = 0
       }
     , Cmd.batch
         [ Websocket.websocketListen ("room:lobby", "new_msg")
+        , Websocket.websocketListen ("room:lobby", "public_replies")
         , updateHeight
         ]
     )
@@ -279,6 +282,11 @@ calcHeight element =
     element.viewport.height - element.element.y - footerHeight
 
 
+repliesDecoder : D.Decoder (List Reply)
+repliesDecoder =
+    D.at ["data"] <| D.list replyDecoder
+
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
@@ -286,6 +294,13 @@ update msg model =
             case D.decodeValue replyDecoder payload of
                 Ok reply ->
                     Debug.log ("ok receive: " ++ (Debug.toString reply)) ( model, updateHeight )
+                Err _ ->
+                    Debug.log "error receive" ( model, Cmd.none )
+
+        WebsocketReceive ("room:lobby", "public_replies", payload) ->
+            case D.decodeValue repliesDecoder payload of
+                Ok public_replies ->
+                    Debug.log "ok receive" ( { model | public_replies = public_replies }, updateHeight )
                 Err _ ->
                     Debug.log "error receive" ( model, Cmd.none )
 
