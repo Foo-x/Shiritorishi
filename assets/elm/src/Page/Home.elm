@@ -257,14 +257,6 @@ allReplies model =
 
 toReplyLine : Reply -> Html msg
 toReplyLine reply =
-    let
-        (wordInit, wordLast) =
-            let
-                length =
-                    String.length reply.word
-            in
-            (String.slice 0 (length - 1) reply.word, String.slice (length - 1) length reply.word)
-    in
     tr
         []
         [ th
@@ -274,10 +266,10 @@ toReplyLine reply =
             []
             [ span
                 []
-                [ text wordInit ]
+                [ text <| String.dropRight 1 reply.word ]
             , span
                 [ class "has-text-weight-bold" ]
-                [ text wordLast ]
+                [ text <| String.right 1 reply.word ]
             ]
         ]
 
@@ -290,15 +282,7 @@ nextHintPlaceholder model =
     in
     case head of
         Just reply ->
-            let
-                lastChar =
-                    let
-                        length =
-                            String.length reply.word
-                    in
-                    String.slice (length - 1) length reply.word
-            in
-            placeholder <| lastChar ++ " ..."
+            placeholder <| (String.right 1 reply.word) ++ " ..."
 
         Nothing ->
             placeholder "..."
