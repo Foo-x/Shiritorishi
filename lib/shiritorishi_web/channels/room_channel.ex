@@ -2,7 +2,7 @@ defmodule ShiritorishiWeb.RoomChannel do
   use Phoenix.Channel
   alias Shiritorishi.Repo
   alias Shiritorishi.PublicReply
-  import Ecto.Query
+  import Ecto.Query, only: [order_by: 2, limit: 2]
 
   def join("room:lobby", _message, socket) do
     send(self(), "public_replies")
@@ -13,8 +13,15 @@ defmodule ShiritorishiWeb.RoomChannel do
   end
 
   def handle_in("new_msg", %{"user" => user, "word" => word}, socket) do
-    broadcast!(socket, "new_msg", %{user: user, word: word})
-    {:noreply, socket}
+    last_char = :ets.lookup_element(:public_replies, "last_char", 2)
+    if String.starts_with?(word, last_char) do
+      broadcast!(socket, "new_msg", %{user: user, word: word})
+      :ets.insert(:public_replies, {"last_char", String.last(word)})
+      {:noreply, socket}
+    else
+      push(socket, "invalid_word", %{})
+      {:noreply, socket}
+    end
   end
 
   def handle_info("public_replies", socket) do

@@ -1,5 +1,8 @@
 defmodule Shiritorishi.Application do
   use Application
+  alias Shiritorishi.Repo
+  alias Shiritorishi.PublicReply
+  import Ecto.Query, only: [order_by: 2, first: 1]
 
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
@@ -19,7 +22,12 @@ defmodule Shiritorishi.Application do
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Shiritorishi.Supervisor]
-    Supervisor.start_link(children, opts)
+    link = Supervisor.start_link(children, opts)
+
+    :ets.new(:public_replies, [:public, :named_table])
+    :ets.insert(:public_replies, {"last_char", get_last_word_char()})
+
+    link
   end
 
   # Tell Phoenix to update the endpoint configuration
@@ -27,5 +35,14 @@ defmodule Shiritorishi.Application do
   def config_change(changed, _new, removed) do
     ShiritorishiWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  def get_last_word_char() do
+    PublicReply
+      |> order_by([desc: :id])
+      |> first
+      |> Repo.one
+      |> Map.get(:word)
+      |> String.last
   end
 end

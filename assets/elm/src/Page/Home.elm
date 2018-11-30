@@ -18,24 +18,34 @@ import Task
 
 type alias Model =
     { session : Session
-    , public_replies : List Reply
+    , publicReplies : List Reply
     , user : String
     , word : String
     , height : Float
+    , userValidity : Validity
+    , wordValidity : Validity
     }
+
+
+type Validity
+    = Valid
+    | Invalid
 
 
 init : Session -> (Model, Cmd Msg)
 init session =
     ( { session = session
-      , public_replies = []
+      , publicReplies = []
       , user = ""
       , word = ""
       , height = 0
+      , userValidity = Valid
+      , wordValidity = Valid
       }
     , Cmd.batch
         [ Websocket.websocketListen ("room:lobby", "new_msg")
         , Websocket.websocketListen ("room:lobby", "public_replies")
+        , Websocket.websocketListen ("room:lobby", "invalid_word")
         , updateHeight
         ]
     )
@@ -169,7 +179,7 @@ view model =
                                 , div
                                     [ class "control" ]
                                     [ input
-                                        [ class "input is-small"
+                                        [ classFromValidity model.userValidity "input is-small"
                                         , type_ "text"
                                         , placeholder "名無し"
                                         , onInput UpdateUser
@@ -201,7 +211,7 @@ view model =
                                 [ div
                                     [ class "control is-expanded" ]
                                     [ input
-                                        [ class "input"
+                                        [ classFromValidity model.wordValidity "input"
                                         , type_ "text"
                                         , nextHintPlaceholder model
                                         , onInput UpdateWord
@@ -230,7 +240,7 @@ latestWord : Model -> Html msg
 latestWord model =
     let
         head =
-            List.head model.public_replies
+            List.head model.publicReplies
     in
     case head of
         Just reply ->
@@ -242,7 +252,7 @@ latestWord model =
 
 allReplies : Model -> List (Html msg)
 allReplies model =
-    List.map toReplyLine model.public_replies
+    List.map toReplyLine model.publicReplies
 
 
 toReplyLine : Reply -> Html msg
@@ -276,7 +286,7 @@ nextHintPlaceholder : Model -> Attribute msg
 nextHintPlaceholder model =
     let
         head =
-            List.head model.public_replies
+            List.head model.publicReplies
     in
     case head of
         Just reply ->
@@ -294,6 +304,16 @@ nextHintPlaceholder model =
             placeholder "..."
 
 
+classFromValidity : Validity -> String -> Attribute msg
+classFromValidity validity base =
+    case validity of
+        Valid ->
+            class base
+        
+        Invalid ->
+            class <| base ++ " " ++ "is-danger"
+
+
 -- UPDATE
 
 
@@ -302,6 +322,7 @@ type Msg
     | UpdateUser String
     | UpdateWord String
     | UpdateHeight (Result Dom.Error Dom.Element)
+    | ClearWordValidity
     | SendReply String String
 
 
@@ -311,28 +332,30 @@ update msg model =
         WebsocketReceive ("room:lobby", "new_msg", payload) ->
             case D.decodeValue replyDecoder payload of
                 Ok reply ->
-                    Debug.log "ok receive" ( { model | public_replies = reply :: model.public_replies }, updateHeight )
+                    ( { model | publicReplies = reply :: model.publicReplies }, updateHeight )
+
                 Err _ ->
-                    Debug.log "error receive" ( model, Cmd.none )
+                    ( model, Cmd.none )
 
         WebsocketReceive ("room:lobby", "public_replies", payload) ->
             case D.decodeValue repliesDecoder payload of
-                Ok public_replies ->
-                    Debug.log "ok receive" ( { model | public_replies = public_replies }, updateHeight )
+                Ok publicReplies ->
+                    ( { model | publicReplies = publicReplies }, updateHeight )
+
                 Err _ ->
-                    Debug.log "error receive" ( model, Cmd.none )
+                    ( model, Cmd.none )
+
+        WebsocketReceive ("room:lobby", "invalid_word", payload) ->
+            ( { model | wordValidity = Invalid }, Cmd.none )
 
         WebsocketReceive (_, _, _) ->
-            Debug.log "other msg" ( model, Cmd.none )
+            ( model, Cmd.none )
 
         UpdateUser user ->
             ( { model | user = user }, Cmd.none )
 
         UpdateWord word ->
-            ( { model | word = word }, Cmd.none )
-
-        SendReply user word ->
-            Debug.log "send reply" ( model, Websocket.websocketSend ( "room:lobby", "new_msg", replyEncoder user word ) )
+            ( { model | word = word }, Task.perform (\_ -> ClearWordValidity) (Task.succeed ()) )
 
         UpdateHeight result ->
             case result of
@@ -341,6 +364,12 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        ClearWordValidity ->
+            ( { model | wordValidity = Valid }, Cmd.none )
+
+        SendReply user word ->
+            ( model, Websocket.websocketSend ( "room:lobby", "new_msg", replyEncoder user word ) )
 
 
 updateHeight : Cmd Msg
@@ -356,6 +385,11 @@ calcHeight element =
 repliesDecoder : D.Decoder (List Reply)
 repliesDecoder =
     D.at ["data"] <| D.list replyDecoder
+
+
+messageDecoder : D.Decoder String
+messageDecoder =
+    D.at ["data"] <| D.string
 
 
 -- SUBSCRIPTIONS
