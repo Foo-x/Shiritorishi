@@ -1,7 +1,8 @@
 defmodule ShiritorishiWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :shiritorishi
 
-  socket "/socket", ShiritorishiWeb.UserSocket
+  socket "/socket", ShiritorishiWeb.UserSocket,
+    websocket: true # or list of options
 
   # Serve at "/" the static files from "priv/static" directory.
   #
@@ -24,7 +25,7 @@ defmodule ShiritorishiWeb.Endpoint do
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
-    json_decoder: Poison
+    json_decoder: Phoenix.json_library()
 
   plug Plug.MethodOverride
   plug Plug.Head

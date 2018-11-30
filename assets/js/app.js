@@ -12,6 +12,8 @@
 // If you no longer want to use a dependency, remember
 // to also remove its path from "config.paths.watched".
 import "phoenix_html"
+import css from "../css/app.css"
+import bulmaDividerCss from "../css/bulma-divider.min.css"
 
 // Import local files
 //
@@ -21,8 +23,9 @@ import "phoenix_html"
 // import socket from "./socket"
 
 import * as phoenix from "phoenix"
-
 import websocketPortsFactory from "elm-phoenix-websocket-ports"
+
+import { Elm } from "../elm/src/Main.elm"
 
 const socketAddress = "/socket"
 const websocketPorts = websocketPortsFactory(phoenix, socketAddress)
