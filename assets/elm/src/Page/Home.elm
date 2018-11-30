@@ -311,7 +311,7 @@ update msg model =
         WebsocketReceive ("room:lobby", "new_msg", payload) ->
             case D.decodeValue replyDecoder payload of
                 Ok reply ->
-                    Debug.log ("ok receive: " ++ (Debug.toString reply)) ( model, updateHeight )
+                    Debug.log "ok receive" ( { model | public_replies = reply :: model.public_replies }, updateHeight )
                 Err _ ->
                     Debug.log "error receive" ( model, Cmd.none )
 
