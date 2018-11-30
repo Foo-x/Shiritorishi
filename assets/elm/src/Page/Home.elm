@@ -25,6 +25,22 @@ type alias Model =
     }
 
 
+init : Session -> (Model, Cmd Msg)
+init session =
+    ( { session = session
+      , public_replies = []
+      , user = ""
+      , word = ""
+      , height = 0
+      }
+    , Cmd.batch
+        [ Websocket.websocketListen ("room:lobby", "new_msg")
+        , Websocket.websocketListen ("room:lobby", "public_replies")
+        , updateHeight
+        ]
+    )
+
+
 brandLogo : List (Attribute msg)
 brandLogo =
     [ src "/images/brand-logo.png"
@@ -40,22 +56,6 @@ footerHeight = 147
 createHeightStr : Model -> String
 createHeightStr model =
     String.fromFloat model.height ++ "px"
-
-
-init : Session -> (Model, Cmd Msg)
-init session =
-    ( { session = session
-      , public_replies = []
-      , user = ""
-      , word = ""
-      , height = 0
-      }
-    , Cmd.batch
-        [ Websocket.websocketListen ("room:lobby", "new_msg")
-        , Websocket.websocketListen ("room:lobby", "public_replies")
-        , updateHeight
-        ]
-    )
 
 
 toSession : Model -> Session
@@ -118,8 +118,7 @@ view model =
                     [ class "is-size-2 has-text-centered has-text-weight-bold" ]
                     [ p
                         [ class "break-word" ]
-                        -- TODO: 動的にする
-                        [ text "かちょうふうげつ" ]
+                        [ latestWord model ]
                     ]
                 , div
                     [ class "is-divider" ]
@@ -139,39 +138,7 @@ view model =
                                     [ class "table is-fullwidth" ]
                                     [ tbody
                                         []
-                                        -- TODO: 動的にする
-                                        [ tr
-                                            []
-                                            [ th
-                                                -- TODO: widthを動的にする
-                                                [ class "shi-primary-dark-text" ]
-                                                [ text "名無し" ]
-                                            , td
-                                                []
-                                                [ span
-                                                    []
-                                                    [ text "すい" ]
-                                                , span
-                                                    [ class "has-text-weight-bold" ]
-                                                    [ text "か" ]
-                                                ]
-                                            ]
-                                        , tr
-                                            []
-                                            [ th
-                                                [ class "shi-primary-dark-text" ]
-                                                [ text "名無し" ]
-                                            , td
-                                                []
-                                                [ span
-                                                    []
-                                                    [ text "から" ]
-                                                , span
-                                                    [ class "has-text-weight-bold" ]
-                                                    [ text "す" ]
-                                                ]
-                                            ]
-                                        ]
+                                        (allReplies model)
                                     ]
                                 ]
                             ]
@@ -236,8 +203,7 @@ view model =
                                     [ input
                                         [ class "input"
                                         , type_ "text"
-                                        -- TODO: 動的にする
-                                        , placeholder "つ ..."
+                                        , nextHintPlaceholder model
                                         , onInput UpdateWord
                                         ]
                                         []
@@ -260,6 +226,73 @@ view model =
     }
 
 
+latestWord : Model -> Html msg
+latestWord model =
+    let
+        head =
+            List.head model.public_replies
+    in
+    case head of
+        Just reply ->
+            text reply.word
+
+        Nothing ->
+            text ""
+
+
+allReplies : Model -> List (Html msg)
+allReplies model =
+    List.map toReplyLine model.public_replies
+
+
+toReplyLine : Reply -> Html msg
+toReplyLine reply =
+    let
+        (wordInit, wordLast) =
+            let
+                length =
+                    String.length reply.word
+            in
+            (String.slice 0 (length - 1) reply.word, String.slice (length - 1) length reply.word)
+    in
+    tr
+        []
+        [ th
+            [ class "shi-primary-dark-text" ]
+            [ text reply.user ]
+        , td
+            []
+            [ span
+                []
+                [ text wordInit ]
+            , span
+                [ class "has-text-weight-bold" ]
+                [ text wordLast ]
+            ]
+        ]
+
+
+nextHintPlaceholder : Model -> Attribute msg
+nextHintPlaceholder model =
+    let
+        head =
+            List.head model.public_replies
+    in
+    case head of
+        Just reply ->
+            let
+                lastChar =
+                    let
+                        length =
+                            String.length reply.word
+                    in
+                    String.slice (length - 1) length reply.word
+            in
+            placeholder <| lastChar ++ " ..."
+
+        Nothing ->
+            placeholder "..."
+
 
 -- UPDATE
 
@@ -270,21 +303,6 @@ type Msg
     | UpdateWord String
     | UpdateHeight (Result Dom.Error Dom.Element)
     | SendReply String String
-
-
-updateHeight : Cmd Msg
-updateHeight =
-    Task.attempt UpdateHeight (Dom.getElement "shi-replies")
-
-
-calcHeight : Dom.Element -> Float
-calcHeight element =
-    element.viewport.height - element.element.y - footerHeight
-
-
-repliesDecoder : D.Decoder (List Reply)
-repliesDecoder =
-    D.at ["data"] <| D.list replyDecoder
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -323,6 +341,21 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+
+updateHeight : Cmd Msg
+updateHeight =
+    Task.attempt UpdateHeight (Dom.getElement "shi-replies")
+
+
+calcHeight : Dom.Element -> Float
+calcHeight element =
+    element.viewport.height - element.element.y - footerHeight
+
+
+repliesDecoder : D.Decoder (List Reply)
+repliesDecoder =
+    D.at ["data"] <| D.list replyDecoder
 
 
 -- SUBSCRIPTIONS

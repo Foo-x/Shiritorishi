@@ -2,6 +2,7 @@ defmodule ShiritorishiWeb.RoomChannel do
   use Phoenix.Channel
   alias Shiritorishi.Repo
   alias Shiritorishi.PublicReply
+  import Ecto.Query
 
   def join("room:lobby", _message, socket) do
     send(self(), "public_replies")
@@ -17,7 +18,11 @@ defmodule ShiritorishiWeb.RoomChannel do
   end
 
   def handle_info("public_replies", socket) do
-    public_replies = Repo.all(PublicReply)
+    public_replies = PublicReply
+      |> order_by([desc: :id])
+      |> limit(50)
+      |> Repo.all
+      |> Enum.sort_by(&(&1.id), &>=/2)
     json = ShiritorishiWeb.PublicReplyView.render("index.json", public_replies: public_replies)
     push(socket, "public_replies", json)
     {:noreply, socket}
