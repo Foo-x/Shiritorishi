@@ -20,7 +20,7 @@ defmodule ShiritorishiWeb.RoomChannel do
     end
 
     last_char = :ets.lookup_element(:public_replies, "last_char", 2)
-    is_word_valid = String.starts_with?(word, last_char)
+    is_word_valid = String.starts_with?(word, last_char) and (String.length word) >= 2
     if !is_word_valid do
       push(socket, "invalid_word", %{})
     end
