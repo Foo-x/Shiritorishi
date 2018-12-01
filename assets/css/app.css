@@ -13,7 +13,8 @@
 }
 
 #shi-name,
-#shi-name-field {
+#shi-name-field,
+#shi-word {
   margin-bottom: 0;
 }
 
@@ -26,6 +27,10 @@
 #shi-footer {
   background-color: initial;
   padding: 1.5rem;
+}
+
+#shi-invalid-message {
+  height: 46px;
 }
 
 body {

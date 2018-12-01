@@ -3,6 +3,7 @@ defmodule ShiritorishiWeb.RoomChannel do
   alias ShiritorishiWeb.Presence
   alias Shiritorishi.Repo
   alias Shiritorishi.PublicReply
+  import ShiritorishiWeb.Gettext
 
   @public_replies_max_length 50
 
@@ -16,17 +17,26 @@ defmodule ShiritorishiWeb.RoomChannel do
 
   def handle_in("new_msg", %{"user" => user, "word" => word}, socket) do
     is_user_valid = user |> String.trim |> String.length |> (&(&1 != 0 and &1 <= 20)).()
-    if !is_user_valid do
-      push(socket, "invalid_user", %{})
+    user_status =
+      if is_user_valid do
+        {:ok}
+      else
+        {:error, gettext "user:invalid"}
+      end
+
+    with {:error, message} <- user_status do
+      push(socket, "invalid_user", %{data: message})
     end
 
     public_replies = :ets.lookup_element(:public_replies, "public_replies", 2)
-    is_word_valid = valid_word?(word, public_replies)
-    if !is_word_valid do
-      push(socket, "invalid_word", %{})
+    word_status = validate_word(word, public_replies)
+    with {:error, message} <- word_status do
+      push(socket, "invalid_word", %{data: message})
     end
 
-    if is_user_valid and is_word_valid do
+    with {:ok} <- user_status,
+         {:ok} <- word_status
+    do
       reply = %PublicReply{user: user, word: word}
       case Repo.insert reply do
         {:ok, _} ->
@@ -35,6 +45,7 @@ defmodule ShiritorishiWeb.RoomChannel do
             |> Enum.take(@public_replies_max_length)
           :ets.insert(:public_replies, {"public_replies", new_public_replies})
           broadcast!(socket, "new_msg", %{user: user, word: word})
+          push(socket, "valid_word", %{})
 
         {:error, _} ->
           IO.inspect "!! something wrong with inserting reply !!"
@@ -65,15 +76,29 @@ defmodule ShiritorishiWeb.RoomChannel do
     {:noreply, socket}
   end
 
-  def valid_word?(word, public_replies) do
+  def validate_word(word, public_replies) do
     words = public_replies
       |> Enum.map(&(Map.get(&1, :word)))
+
     last_char = words
       |> List.first
       |> String.last
-    !Enum.member?(words, word)
-      and String.starts_with?(word, last_char)
-      and (String.length word) >= 2
-      and !String.ends_with? word, "ん"
+
+    cond do
+      (String.length word) < 2 ->
+        {:error, gettext "word:invalid length"}
+
+      !String.starts_with?(word, last_char) ->
+        {:error, gettext("word:invalid first", last_char: last_char)}
+
+      String.ends_with?(word, "ん") ->
+        {:error, gettext "word:invalid last"}
+
+      Enum.member?(words, word) ->
+        {:error, gettext("word:already used", word: word)}
+
+      true ->
+        {:ok}
+    end
   end
 end

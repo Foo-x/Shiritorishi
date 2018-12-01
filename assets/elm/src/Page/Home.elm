@@ -25,6 +25,7 @@ type alias Model =
     , userCount : Int
     , userValidity : Validity
     , wordValidity : Validity
+    , invalidMessage : String
     }
 
 
@@ -43,12 +44,14 @@ init session =
       , userCount = 1
       , userValidity = Valid
       , wordValidity = Valid
+      , invalidMessage = ""
       }
     , Cmd.batch
         [ Websocket.websocketListen ("room:lobby", "new_msg")
         , Websocket.websocketListen ("room:lobby", "public_replies")
         , Websocket.websocketListen ("room:lobby", "invalid_user")
         , Websocket.websocketListen ("room:lobby", "invalid_word")
+        , Websocket.websocketListen ("room:lobby", "valid_word")
         , Websocket.websocketListen ("room:lobby", "presence_diff")
         , updateHeight
         ]
@@ -56,7 +59,7 @@ init session =
 
 
 footerHeight : Float
-footerHeight = 147
+footerHeight = 181
 
 
 publicRepliesMaxLength : Int
@@ -203,7 +206,8 @@ view model =
                                 ]
                             ]
                         , div
-                            [ class "columns is-mobile" ]
+                            [ id "shi-word"
+                            , class "columns is-mobile" ]
                             [ div
                                 [ class "column is-11 field has-addons" ]
                                 [ div
@@ -214,6 +218,7 @@ view model =
                                         , nextHintPlaceholder model
                                         , onInput UpdateWord
                                         , onKeyDown KeyDown
+                                        , value model.word
                                         ]
                                         []
                                     ]
@@ -226,6 +231,13 @@ view model =
                                         [ text "送信" ]
                                     ]
                                 ]
+                            ]
+                        , div
+                            [ id "shi-invalid-message"
+                            , class "columns is-mobile" ]
+                            [ p
+                                [ class "column help is-danger" ]
+                                [ text model.invalidMessage ]
                             ]
                         ]
                     ]
@@ -349,10 +361,45 @@ update msg model =
                     ( model, Cmd.none )
 
         WebsocketReceive ("room:lobby", "invalid_user", payload) ->
-            ( { model | userValidity = Invalid }, Cmd.none )
+            case D.decodeValue messageDecoder payload of
+                Ok message ->
+                    ( { model
+                      | invalidMessage = message
+                      , userValidity = Invalid
+                      }
+                    , updateHeight
+                    )
+
+                Err _ ->
+                    ( model, Cmd.none )
 
         WebsocketReceive ("room:lobby", "invalid_word", payload) ->
-            ( { model | wordValidity = Invalid }, Cmd.none )
+            case D.decodeValue messageDecoder payload of
+                Ok message ->
+                    if model.userValidity == Invalid then
+                        ( { model
+                          | wordValidity = Invalid
+                          }
+                        , updateHeight
+                        )
+                    else
+                        ( { model
+                          | invalidMessage = message
+                          , wordValidity = Invalid
+                          }
+                        , updateHeight
+                        )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
+        WebsocketReceive ("room:lobby", "valid_word", payload) ->
+            ( { model
+              | word = ""
+              , invalidMessage = ""
+              }
+            , Cmd.none
+            )
 
         WebsocketReceive ("room:lobby", "presence_diff", payload) ->
             case D.decodeValue userCountDecoder payload of
