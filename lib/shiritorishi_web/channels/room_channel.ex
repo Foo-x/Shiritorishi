@@ -21,13 +21,7 @@ defmodule ShiritorishiWeb.RoomChannel do
     end
 
     public_replies = :ets.lookup_element(:public_replies, "public_replies", 2)
-    last_char = public_replies
-      |> List.first
-      |> Map.get(:word)
-      |> String.last
-    is_word_valid = String.starts_with?(word, last_char)
-      and (String.length word) >= 2
-      and !String.ends_with? word, "ん"
+    is_word_valid = valid_word?(word, public_replies)
     if !is_word_valid do
       push(socket, "invalid_word", %{})
     end
@@ -69,5 +63,17 @@ defmodule ShiritorishiWeb.RoomChannel do
       online_at: inspect(System.system_time(:second))
     })
     {:noreply, socket}
+  end
+
+  def valid_word?(word, public_replies) do
+    words = public_replies
+      |> Enum.map(&(Map.get(&1, :word)))
+    last_char = words
+      |> List.first
+      |> String.last
+    !Enum.member?(words, word)
+      and String.starts_with?(word, last_char)
+      and (String.length word) >= 2
+      and !String.ends_with? word, "ん"
   end
 end
