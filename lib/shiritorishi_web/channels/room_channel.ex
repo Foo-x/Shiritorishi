@@ -3,7 +3,8 @@ defmodule ShiritorishiWeb.RoomChannel do
   alias ShiritorishiWeb.Presence
   alias Shiritorishi.Repo
   alias Shiritorishi.PublicReply
-  import Ecto.Query, only: [order_by: 2, limit: 2]
+
+  @public_replies_max_length 50
 
   def join("room:lobby", _message, socket) do
     send(self(), "after_join")
@@ -19,7 +20,11 @@ defmodule ShiritorishiWeb.RoomChannel do
       push(socket, "invalid_user", %{})
     end
 
-    last_char = :ets.lookup_element(:public_replies, "last_char", 2)
+    public_replies = :ets.lookup_element(:public_replies, "public_replies", 2)
+    last_char = public_replies
+      |> List.first
+      |> Map.get(:word)
+      |> String.last
     is_word_valid = String.starts_with?(word, last_char)
       and (String.length word) >= 2
       and !String.ends_with? word, "ん"
@@ -28,9 +33,13 @@ defmodule ShiritorishiWeb.RoomChannel do
     end
 
     if is_user_valid and is_word_valid do
-      case Repo.insert %PublicReply{user: user, word: word} do
+      reply = %PublicReply{user: user, word: word}
+      case Repo.insert reply do
         {:ok, _} ->
-          :ets.insert(:public_replies, {"last_char", String.last(word)})
+          new_public_replies = public_replies
+            |> List.insert_at(0, reply)
+            |> Enum.take(@public_replies_max_length)
+          :ets.insert(:public_replies, {"public_replies", new_public_replies})
           broadcast!(socket, "new_msg", %{user: user, word: word})
 
         {:error, _} ->
@@ -51,11 +60,7 @@ defmodule ShiritorishiWeb.RoomChannel do
   end
 
   def handle_info("after_join", socket) do
-    public_replies = PublicReply
-      |> order_by([desc: :id])
-      |> limit(50)
-      |> Repo.all
-      |> Enum.sort_by(&(&1.id), &>=/2)
+    public_replies = :ets.lookup_element(:public_replies, "public_replies", 2)
     json = ShiritorishiWeb.PublicReplyView.render("index.json", public_replies: public_replies)
     push(socket, "public_replies", json)
 

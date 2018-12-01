@@ -2,7 +2,9 @@ defmodule Shiritorishi.Application do
   use Application
   alias Shiritorishi.Repo
   alias Shiritorishi.PublicReply
-  import Ecto.Query, only: [order_by: 2, first: 1]
+  import Ecto.Query, only: [order_by: 2, limit: 2]
+
+  @public_replies_max_length 50
 
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
@@ -26,7 +28,7 @@ defmodule Shiritorishi.Application do
     link = Supervisor.start_link(children, opts)
 
     :ets.new(:public_replies, [:public, :named_table])
-    :ets.insert(:public_replies, {"last_char", get_last_word_char()})
+    :ets.insert(:public_replies, {"public_replies", get_public_replies()})
 
     link
   end
@@ -38,12 +40,11 @@ defmodule Shiritorishi.Application do
     :ok
   end
 
-  def get_last_word_char() do
+  def get_public_replies() do
     PublicReply
       |> order_by([desc: :id])
-      |> first
-      |> Repo.one
-      |> Map.get(:word)
-      |> String.last
+      |> limit(@public_replies_max_length)
+      |> Repo.all
+      |> Enum.sort_by(&(&1.id), &>=/2)
   end
 end
