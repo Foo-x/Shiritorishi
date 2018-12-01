@@ -1,5 +1,6 @@
 defmodule ShiritorishiWeb.UserSocket do
   use Phoenix.Socket
+  @length 32
 
   ## Channels
   channel "room:*", ShiritorishiWeb.RoomChannel
@@ -16,7 +17,8 @@ defmodule ShiritorishiWeb.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   def connect(_params, socket) do
-    {:ok, socket}
+    user_id = :crypto.strong_rand_bytes(@length) |> Base.encode64 |> binary_part(0, @length)
+    {:ok, assign(socket, :user_id, user_id)}
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
@@ -29,5 +31,5 @@ defmodule ShiritorishiWeb.UserSocket do
   #     ShiritorishiWeb.Endpoint.broadcast("user_socket:#{user.id}", "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
-  def id(_socket), do: nil
+  def id(socket), do: "users_socket: #{socket.assigns.user_id}"
 end

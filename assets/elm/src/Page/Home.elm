@@ -22,6 +22,7 @@ type alias Model =
     , user : String
     , word : String
     , height : Float
+    , userCount : Int
     , userValidity : Validity
     , wordValidity : Validity
     }
@@ -39,6 +40,7 @@ init session =
       , user = ""
       , word = ""
       , height = 0
+      , userCount = 1
       , userValidity = Valid
       , wordValidity = Valid
       }
@@ -46,6 +48,7 @@ init session =
         [ Websocket.websocketListen ("room:lobby", "new_msg")
         , Websocket.websocketListen ("room:lobby", "public_replies")
         , Websocket.websocketListen ("room:lobby", "invalid_word")
+        , Websocket.websocketListen ("room:lobby", "presence_diff")
         , updateHeight
         ]
     )
@@ -199,8 +202,7 @@ view model =
                                             [ class "fas fa-user" ]
                                             []
                                         ]
-                                    -- TODO: 動的にする
-                                    , text "12"
+                                    , text <| String.fromInt model.userCount
                                     ]
                                 ]
                             ]
@@ -332,6 +334,14 @@ update msg model =
         WebsocketReceive ("room:lobby", "invalid_word", payload) ->
             ( { model | wordValidity = Invalid }, Cmd.none )
 
+        WebsocketReceive ("room:lobby", "presence_diff", payload) ->
+            case D.decodeValue userCountDecoder payload of
+                Ok userCount ->
+                    ( { model | userCount = userCount }, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
         WebsocketReceive (_, _, _) ->
             ( model, Cmd.none )
 
@@ -374,6 +384,11 @@ repliesDecoder =
 messageDecoder : D.Decoder String
 messageDecoder =
     D.at ["data"] <| D.string
+
+
+userCountDecoder : D.Decoder Int
+userCountDecoder =
+    D.at ["user_count"] <| D.int
 
 
 -- SUBSCRIPTIONS

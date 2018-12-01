@@ -17,6 +17,7 @@ defmodule Shiritorishi.Application do
       supervisor(ShiritorishiWeb.Endpoint, []),
       # Start your own worker by calling: Shiritorishi.Worker.start_link(arg1, arg2, arg3)
       # worker(Shiritorishi.Worker, [arg1, arg2, arg3]),
+      ShiritorishiWeb.Presence
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
