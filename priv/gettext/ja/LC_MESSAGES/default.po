@@ -12,26 +12,31 @@ msgstr ""
 "Plural-Forms: nplurals=1\n"
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:89
+#: lib/shiritorishi_web/channels/room_channel.ex:102
 msgid "word:already used"
 msgstr "「%{word}」はすでに使用されています。"
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:92
+#: lib/shiritorishi_web/channels/room_channel.ex:93
 msgid "word:invalid first"
 msgstr "最初の文字は「%{last_char}」で始める必要があります。"
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:98
+#: lib/shiritorishi_web/channels/room_channel.ex:96
 msgid "word:invalid last"
 msgstr "最後の文字に「ん」を使用することはできません。"
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:95
+#: lib/shiritorishi_web/channels/room_channel.ex:90
 msgid "word:invalid length"
 msgstr "2文字以上の単語を入力してください。"
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:24
+#: lib/shiritorishi_web/channels/room_channel.ex:25
 msgid "user:invalid"
 msgstr "名前は20文字以下にする必要があります。"
+
+#, elixir-format, fuzzy
+#: lib/shiritorishi_web/channels/room_channel.ex:99
+msgid "word:invalid char"
+msgstr "使用できる文字はひらがなとカタカナのみです。"

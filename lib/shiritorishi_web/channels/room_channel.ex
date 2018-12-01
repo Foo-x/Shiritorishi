@@ -3,6 +3,7 @@ defmodule ShiritorishiWeb.RoomChannel do
   alias ShiritorishiWeb.Presence
   alias Shiritorishi.Repo
   alias Shiritorishi.PublicReply
+  alias Shiritorishi.KanaDict
   import ShiritorishiWeb.Gettext
 
   @public_replies_max_length 50
@@ -93,6 +94,9 @@ defmodule ShiritorishiWeb.RoomChannel do
 
       String.ends_with?(word, "ん") ->
         {:error, gettext "word:invalid last"}
+
+      !KanaDict.valid_text?(word) ->
+        {:error, gettext "word:invalid char"}
 
       Enum.member?(words, word) ->
         {:error, gettext("word:already used", word: word)}
