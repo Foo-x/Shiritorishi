@@ -4,7 +4,7 @@ import Browser
 import Browser.Dom as Dom
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (on, onClick, onInput, keyCode)
 import Json.Decode as D
 import Ports.Websocket as Websocket
 import Reply exposing (Reply, replyDecoder, replyEncoder)
@@ -210,6 +210,7 @@ view model =
                                         , type_ "text"
                                         , nextHintPlaceholder model
                                         , onInput UpdateWord
+                                        , onKeyDown KeyDown
                                         ]
                                         []
                                     ]
@@ -305,6 +306,11 @@ classFromValidity validity base =
             class <| base ++ " " ++ "is-danger"
 
 
+onKeyDown : (Int -> msg) -> Attribute msg
+onKeyDown tagger =
+    on "keydown" (D.map tagger keyCode)
+
+
 -- UPDATE
 
 
@@ -315,6 +321,7 @@ type Msg
     | UpdateHeight (Result Dom.Error Dom.Element)
     | ClearUserValidity
     | ClearWordValidity
+    | KeyDown Int
     | SendReply String String
 
 
@@ -373,6 +380,13 @@ update msg model =
 
         ClearWordValidity ->
             ( { model | wordValidity = Valid }, Cmd.none )
+
+        KeyDown key ->
+            case key of
+                13 ->
+                    ( model, Task.perform (\_ -> SendReply model.user model.word) (Task.succeed ()) )
+                _ ->
+                    (model, Cmd.none )
 
         SendReply user word ->
             let
