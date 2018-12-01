@@ -47,19 +47,12 @@ init session =
     , Cmd.batch
         [ Websocket.websocketListen ("room:lobby", "new_msg")
         , Websocket.websocketListen ("room:lobby", "public_replies")
+        , Websocket.websocketListen ("room:lobby", "invalid_user")
         , Websocket.websocketListen ("room:lobby", "invalid_word")
         , Websocket.websocketListen ("room:lobby", "presence_diff")
         , updateHeight
         ]
     )
-
-
-brandLogo : List (Attribute msg)
-brandLogo =
-    [ src "/images/brand-logo.png"
-    , width 125
-    , height 32
-    ]
 
 
 footerHeight : Float
@@ -184,7 +177,7 @@ view model =
                                     [ input
                                         [ classFromValidity model.userValidity "input is-small"
                                         , type_ "text"
-                                        , placeholder "名無し"
+                                        , placeholder userPlaceHolder
                                         , onInput UpdateUser
                                         ]
                                         []
@@ -236,6 +229,18 @@ view model =
             ]
         ]
     }
+
+
+brandLogo : List (Attribute msg)
+brandLogo =
+    [ src "/images/brand-logo.png"
+    , width 125
+    , height 32
+    ]
+
+
+userPlaceHolder : String
+userPlaceHolder = "名無し"
 
 
 latestWord : Model -> Html msg
@@ -308,6 +313,7 @@ type Msg
     | UpdateUser String
     | UpdateWord String
     | UpdateHeight (Result Dom.Error Dom.Element)
+    | ClearUserValidity
     | ClearWordValidity
     | SendReply String String
 
@@ -331,6 +337,9 @@ update msg model =
                 Err _ ->
                     ( model, Cmd.none )
 
+        WebsocketReceive ("room:lobby", "invalid_user", payload) ->
+            ( { model | userValidity = Invalid }, Cmd.none )
+
         WebsocketReceive ("room:lobby", "invalid_word", payload) ->
             ( { model | wordValidity = Invalid }, Cmd.none )
 
@@ -346,7 +355,7 @@ update msg model =
             ( model, Cmd.none )
 
         UpdateUser user ->
-            ( { model | user = user }, Cmd.none )
+            ( { model | user = user }, Task.perform (\_ -> ClearUserValidity) (Task.succeed ()) )
 
         UpdateWord word ->
             ( { model | word = word }, Task.perform (\_ -> ClearWordValidity) (Task.succeed ()) )
@@ -359,11 +368,18 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        ClearUserValidity ->
+            ( { model | userValidity = Valid }, Cmd.none )
+
         ClearWordValidity ->
             ( { model | wordValidity = Valid }, Cmd.none )
 
         SendReply user word ->
-            ( model, Websocket.websocketSend ( "room:lobby", "new_msg", replyEncoder user word ) )
+            let
+                actualUser =
+                    if String.isEmpty user then userPlaceHolder else user
+            in
+            ( model, Websocket.websocketSend ( "room:lobby", "new_msg", replyEncoder actualUser word ) )
 
 
 updateHeight : Cmd Msg

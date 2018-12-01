@@ -14,15 +14,23 @@ defmodule ShiritorishiWeb.RoomChannel do
   end
 
   def handle_in("new_msg", %{"user" => user, "word" => word}, socket) do
+    is_user_valid = user |> String.trim |> String.length |> (&(&1 != 0 and &1 <= 20)).()
+    if !is_user_valid do
+      push(socket, "invalid_user", %{})
+    end
+
     last_char = :ets.lookup_element(:public_replies, "last_char", 2)
-    if String.starts_with?(word, last_char) do
+    is_word_valid = String.starts_with?(word, last_char)
+    if !is_word_valid do
+      push(socket, "invalid_word", %{})
+    end
+
+    if is_user_valid and is_word_valid do
       broadcast!(socket, "new_msg", %{user: user, word: word})
       :ets.insert(:public_replies, {"last_char", String.last(word)})
-      {:noreply, socket}
-    else
-      push(socket, "invalid_word", %{})
-      {:noreply, socket}
     end
+
+    {:noreply, socket}
   end
 
   intercept ["presence_diff"]
