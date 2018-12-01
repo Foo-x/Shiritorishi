@@ -26,8 +26,14 @@ defmodule ShiritorishiWeb.RoomChannel do
     end
 
     if is_user_valid and is_word_valid do
-      broadcast!(socket, "new_msg", %{user: user, word: word})
-      :ets.insert(:public_replies, {"last_char", String.last(word)})
+      case Repo.insert %PublicReply{user: user, word: word} do
+        {:ok, _} ->
+          :ets.insert(:public_replies, {"last_char", String.last(word)})
+          broadcast!(socket, "new_msg", %{user: user, word: word})
+
+        {:error, _} ->
+          IO.inspect "!! something wrong with inserting reply !!"
+      end
     end
 
     {:noreply, socket}
