@@ -59,9 +59,12 @@ footerHeight : Float
 footerHeight = 147
 
 
-createHeightStr : Model -> String
-createHeightStr model =
-    String.fromFloat model.height ++ "px"
+publicRepliesMaxLength : Int
+publicRepliesMaxLength = 50
+
+
+defaultUser : String
+defaultUser = "名無し"
 
 
 toSession : Model -> Session
@@ -177,7 +180,7 @@ view model =
                                     [ input
                                         [ classFromValidity model.userValidity "input is-small"
                                         , type_ "text"
-                                        , placeholder userPlaceHolder
+                                        , placeholder defaultUser
                                         , onInput UpdateUser
                                         ]
                                         []
@@ -240,8 +243,9 @@ brandLogo =
     ]
 
 
-userPlaceHolder : String
-userPlaceHolder = "名無し"
+createHeightStr : Model -> String
+createHeightStr model =
+    String.fromFloat model.height ++ "px"
 
 
 latestWord : Model -> Html msg
@@ -331,7 +335,7 @@ update msg model =
         WebsocketReceive ("room:lobby", "new_msg", payload) ->
             case D.decodeValue replyDecoder payload of
                 Ok reply ->
-                    ( { model | publicReplies = reply :: model.publicReplies }, updateHeight )
+                    ( { model | publicReplies = reply :: model.publicReplies |> List.take publicRepliesMaxLength }, updateHeight )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -339,7 +343,7 @@ update msg model =
         WebsocketReceive ("room:lobby", "public_replies", payload) ->
             case D.decodeValue repliesDecoder payload of
                 Ok publicReplies ->
-                    ( { model | publicReplies = publicReplies }, updateHeight )
+                    ( { model | publicReplies = publicReplies |> List.take publicRepliesMaxLength }, updateHeight )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -391,7 +395,7 @@ update msg model =
         SendReply user word ->
             let
                 actualUser =
-                    if String.isEmpty user then userPlaceHolder else user
+                    if String.isEmpty user then defaultUser else user
             in
             ( model, Websocket.websocketSend ( "room:lobby", "new_msg", replyEncoder actualUser word ) )
 
