@@ -67,7 +67,7 @@ publicRepliesMaxLength = 50
 
 
 defaultUser : String
-defaultUser = "名無し"
+defaultUser = "名無しりとり"
 
 
 toSession : Model -> Session

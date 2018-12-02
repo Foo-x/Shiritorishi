@@ -87,8 +87,9 @@ html, body {
 }
 
 /* override */
-tbody th {
-  width: 33%;
+table.table tbody th {
+  width: 50%;
+  text-align: right;
 }
 
 tbody tr th,
