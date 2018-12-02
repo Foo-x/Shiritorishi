@@ -7,7 +7,9 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick, onInput, keyCode)
 import Json.Decode as D
 import Ports.Websocket as Websocket
+import Regex exposing (Regex)
 import Reply exposing (Reply, replyDecoder, replyEncoder)
+import Set exposing (Set)
 import Store.Session exposing (Session)
 import Task
 
@@ -279,6 +281,84 @@ allReplies model =
     List.map toReplyLine model.publicReplies
 
 
+ignoreSet : Set Char
+ignoreSet =
+    Set.fromList
+        [ 'ー' ]
+
+
+ignoreSetStr : String
+ignoreSetStr =
+    ignoreSet
+        |> Set.toList
+        |> List.map String.fromChar
+        |> String.join ""
+        |> (\s -> "[" ++ s ++ "]")
+
+
+myReplace : String -> (Regex.Match -> String) -> String -> String
+myReplace regexStr replacer string =
+    case Regex.fromString regexStr of
+        Just regex ->
+            Regex.replace regex replacer string
+        
+        Nothing ->
+            string
+
+
+myFind : String -> String -> List Regex.Match
+myFind regexStr string =
+    case Regex.fromString regexStr of
+        Just regex ->
+            Regex.find regex string
+
+        Nothing ->
+            []
+
+
+splitForLastChar : String -> (String, String, Maybe String)
+splitForLastChar word =
+    case myFind ("(.+?)(" ++ ignoreSetStr ++ "*)$") word of
+        head :: tail ->
+            case head.submatches of
+                maybeFirst :: maybeSecond :: _ ->
+                    let
+                        first =
+                            Maybe.withDefault "" maybeFirst
+                    in
+                    (String.dropRight 1 first, String.right 1 first, maybeSecond)
+
+                _ ->
+                    ( "", "", Nothing )
+
+        _ ->
+            ( "", "", Nothing )
+
+
+toReplyWord : String -> List (Html msg)
+toReplyWord word =
+    let
+        untilLastChar initStr lastStr =
+            [ span
+                []
+                [ text initStr ]
+            , span
+                [ class "has-text-weight-bold" ]
+                [ text lastStr ]
+            ]
+    in
+    case splitForLastChar word of
+        ( initStr, lastStr, Nothing ) ->
+            untilLastChar initStr lastStr
+
+        ( initStr, lastStr, Just ignored ) ->
+            List.append (untilLastChar initStr lastStr)
+                [ span
+                    []
+                    [ text ignored ]
+                ]
+
+
 toReplyLine : Reply -> Html msg
 toReplyLine reply =
     tr
@@ -288,14 +368,13 @@ toReplyLine reply =
             [ text reply.user ]
         , td
             []
-            [ span
-                []
-                [ text <| String.dropRight 1 reply.word ]
-            , span
-                [ class "has-text-weight-bold" ]
-                [ text <| String.right 1 reply.word ]
-            ]
+            (toReplyWord reply.word)
         ]
+
+
+stripIgnored : String -> String
+stripIgnored string =
+    myReplace ignoreSetStr (\_ -> "") string
 
 
 nextHintPlaceholder : Model -> Attribute msg
@@ -306,7 +385,7 @@ nextHintPlaceholder model =
     in
     case head of
         Just reply ->
-            placeholder <| (String.right 1 reply.word) ++ " ..."
+            placeholder <| (String.right 1 <| stripIgnored reply.word) ++ " ..."
 
         Nothing ->
             placeholder "..."

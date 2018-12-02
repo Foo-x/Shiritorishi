@@ -81,9 +81,11 @@ defmodule Shiritorishi.KanaDict.Table do
       "ぇ" => "ェ",
       "ぉ" => "ォ",
       "ヵ" => "ヵ",
+      "っ" => "ッ",
       "ゃ" => "ャ",
       "ゅ" => "ュ",
-      "ょ" => "ョ"
+      "ょ" => "ョ",
+      "ー" => "ー"
     }
   end
 
@@ -168,9 +170,17 @@ defmodule Shiritorishi.KanaDict.Table do
       "ェ" => "ぇ",
       "ォ" => "ぉ",
       "ヵ" => "ヵ",
+      "ッ" => "っ",
       "ャ" => "ゃ",
       "ュ" => "ゅ",
-      "ョ" => "ょ"
+      "ョ" => "ょ",
+      "ー" => "ー"
     }
+  end
+
+  def ignore_set do
+    MapSet.new([
+      "ー"
+    ])
   end
 end

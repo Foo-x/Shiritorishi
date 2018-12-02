@@ -6,4 +6,6 @@ defmodule Shiritorishi.KanaDict do
   defdelegate to_kata(text), to: Translator
 
   defdelegate valid_text?(text), to: Translator
+
+  defdelegate strip_ignored(text), to: Translator
 end

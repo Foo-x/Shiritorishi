@@ -29,6 +29,11 @@ defmodule Shiritorishi.KanaDict.Translator do
       |> Enum.all?(&(Map.has_key?(Table.hira2kata(), &1) or Map.has_key?(Table.kata2hira(), &1)))
   end
 
+  def strip_ignored(text) do
+    ignore_chars = Enum.join Table.ignore_set()
+    String.replace(text, ~r/[#{ignore_chars}]/u, "")
+  end
+
   defp translate(text, fun) do
     text
       |> String.graphemes

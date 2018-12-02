@@ -83,6 +83,7 @@ defmodule ShiritorishiWeb.RoomChannel do
 
     last_char = words
       |> List.first
+      |> KanaDict.strip_ignored
       |> String.last
 
     cond do

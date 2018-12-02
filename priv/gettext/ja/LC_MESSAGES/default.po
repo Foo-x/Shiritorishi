@@ -24,7 +24,7 @@ msgstr "最初の文字は「%{last_char}」で始める必要があります。
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel.ex:96
 msgid "word:invalid last"
-msgstr "最後の文字に「ん」を使用することはできません。"
+msgstr "最後の文字に「ん」や「ン」を使用することはできません。"
 
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel.ex:90
