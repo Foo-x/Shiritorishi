@@ -89,10 +89,10 @@ defmodule ShiritorishiWeb.RoomChannel do
       (String.length word) < 2 ->
         {:error, gettext "word:invalid length"}
 
-      !String.starts_with?(word, last_char) ->
+      !valid_first?(word, last_char) ->
         {:error, gettext("word:invalid first", last_char: last_char)}
 
-      String.ends_with?(word, "ん") ->
+      String.ends_with?(word, ["ん", "ン"]) ->
         {:error, gettext "word:invalid last"}
 
       !KanaDict.valid_text?(word) ->
@@ -104,5 +104,10 @@ defmodule ShiritorishiWeb.RoomChannel do
       true ->
         {:ok}
     end
+  end
+
+  def valid_first?(word, last_char) do
+    first_char = String.first word
+    KanaDict.to_hira(first_char) == KanaDict.to_hira(last_char)
   end
 end
