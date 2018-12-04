@@ -23,6 +23,17 @@ defmodule Shiritorishi.KanaDict.Translator do
     translate(text, fun)
   end
 
+  def to_upper(text) do
+    fun = fn char ->
+      if Map.has_key?(Table.to_upper(), char) do
+        Table.to_upper()[char]
+      else
+        char
+      end
+    end
+    translate(text, fun)
+  end
+
   def valid_text?(text) do
     text
       |> String.graphemes

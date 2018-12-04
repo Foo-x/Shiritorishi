@@ -38,7 +38,16 @@ defmodule ShiritorishiWeb.RoomChannel do
     with {:ok} <- user_status,
          {:ok} <- word_status
     do
-      reply = %PublicReply{user: user, word: word}
+      actual_last_char = word
+        |> KanaDict.strip_ignored
+        |> String.last
+      upper_last_char = KanaDict.to_upper actual_last_char
+      reply = %PublicReply{
+        user: user,
+        word: word,
+        actual_last_char: actual_last_char,
+        upper_last_char: upper_last_char
+      }
       case Repo.insert reply do
         {:ok, _} ->
           new_public_replies = public_replies
@@ -81,10 +90,9 @@ defmodule ShiritorishiWeb.RoomChannel do
     words = public_replies
       |> Enum.map(&(Map.get(&1, :word)))
 
-    last_char = words
+    last_char = public_replies
       |> List.first
-      |> KanaDict.strip_ignored
-      |> String.last
+      |> Map.get(:upper_last_char)
 
     cond do
       (String.length word) < 2 ->
