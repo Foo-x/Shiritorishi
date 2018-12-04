@@ -6,6 +6,8 @@ defmodule Shiritorishi.PublicReply do
   schema "public_replies" do
     field :user, :string
     field :word, :string
+    field :actual_last_char, :string
+    field :upper_last_char, :string
 
     timestamps()
   end
@@ -13,7 +15,7 @@ defmodule Shiritorishi.PublicReply do
   @doc false
   def changeset(public_reply, attrs) do
     public_reply
-    |> cast(attrs, [:user, :word])
-    |> validate_required([:user, :word])
+    |> cast(attrs, [:user, :word, :actual_last_char, :upper_last_char])
+    |> validate_required([:user, :word, :actual_last_char, :upper_last_char])
   end
 end
