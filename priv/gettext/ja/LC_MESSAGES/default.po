@@ -19,7 +19,7 @@ msgstr "「%{word}」はすでに使用されています。"
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel.ex:93
 msgid "word:invalid first"
-msgstr "最初の文字は「%{last_char}」で始める必要があります。"
+msgstr "最初の文字を「%{last_char}」で始める必要があります。"
 
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel.ex:96
