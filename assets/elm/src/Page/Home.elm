@@ -281,31 +281,6 @@ allReplies model =
     List.map toReplyLine model.publicReplies
 
 
-ignoreSet : Set Char
-ignoreSet =
-    Set.fromList
-        [ 'ー' ]
-
-
-ignoreSetStr : String
-ignoreSetStr =
-    ignoreSet
-        |> Set.toList
-        |> List.map String.fromChar
-        |> String.join ""
-        |> (\s -> "[" ++ s ++ "]")
-
-
-myReplace : String -> (Regex.Match -> String) -> String -> String
-myReplace regexStr replacer string =
-    case Regex.fromString regexStr of
-        Just regex ->
-            Regex.replace regex replacer string
-        
-        Nothing ->
-            string
-
-
 myFind : String -> String -> List Regex.Match
 myFind regexStr string =
     case Regex.fromString regexStr of
@@ -316,17 +291,13 @@ myFind regexStr string =
             []
 
 
-splitForLastChar : String -> (String, String, Maybe String)
-splitForLastChar word =
-    case myFind ("(.+?)(" ++ ignoreSetStr ++ "*)$") word of
+splitForLastChar : String -> String -> (String, String, Maybe String)
+splitForLastChar word actualLastChar =
+    case myFind ("(.*)(" ++ actualLastChar ++ ")(.*)") word of
         head :: tail ->
             case head.submatches of
-                maybeFirst :: maybeSecond :: _ ->
-                    let
-                        first =
-                            Maybe.withDefault "" maybeFirst
-                    in
-                    (String.dropRight 1 first, String.right 1 first, maybeSecond)
+                maybeFirst :: maybeSecond :: maybeThird :: _ ->
+                    (Maybe.withDefault "" maybeFirst, actualLastChar, maybeThird)
 
                 _ ->
                     ( "", "", Nothing )
@@ -335,8 +306,8 @@ splitForLastChar word =
             ( "", "", Nothing )
 
 
-toReplyWord : String -> List (Html msg)
-toReplyWord word =
+toReplyWord : String -> String -> List (Html msg)
+toReplyWord word actualLastChar =
     let
         untilLastChar initStr lastStr =
             [ span
@@ -347,7 +318,7 @@ toReplyWord word =
                 [ text lastStr ]
             ]
     in
-    case splitForLastChar word of
+    case splitForLastChar word actualLastChar of
         ( initStr, lastStr, Nothing ) ->
             untilLastChar initStr lastStr
 
@@ -368,24 +339,21 @@ toReplyLine reply =
             [ text reply.user ]
         , td
             []
-            (toReplyWord reply.word)
+            (toReplyWord reply.word reply.actualLastChar)
         ]
-
-
-stripIgnored : String -> String
-stripIgnored string =
-    myReplace ignoreSetStr (\_ -> "") string
 
 
 nextHintPlaceholder : Model -> Attribute msg
 nextHintPlaceholder model =
     let
-        head =
-            List.head model.publicReplies
+        maybeLastChar =
+            model.publicReplies
+                |> List.head
+                |> Maybe.map (\reply -> reply.upperLastChar)
     in
-    case head of
-        Just reply ->
-            placeholder <| (String.right 1 <| stripIgnored reply.word) ++ " ..."
+    case maybeLastChar of
+        Just lastChar ->
+            placeholder <| lastChar ++ " ..."
 
         Nothing ->
             placeholder "..."

@@ -7,6 +7,9 @@ defmodule ShiritorishiWeb.PublicReplyView do
 
   def render("public_reply.json", %{public_reply: public_reply}) do
     %{user: public_reply.user,
-      word: public_reply.word}
+      word: public_reply.word,
+      actual_last_char: public_reply.actual_last_char,
+      upper_last_char: public_reply.upper_last_char
+    }
   end
 end

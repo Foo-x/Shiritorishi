@@ -54,7 +54,10 @@ defmodule ShiritorishiWeb.RoomChannel do
             |> List.insert_at(0, reply)
             |> Enum.take(@public_replies_max_length)
           :ets.insert(:public_replies, {"public_replies", new_public_replies})
-          broadcast!(socket, "new_msg", %{user: user, word: word})
+          json_reply = reply
+            |> Map.from_struct
+            |> Map.take([:user, :word, :actual_last_char, :upper_last_char])
+          broadcast!(socket, "new_msg", json_reply)
           push(socket, "valid_word", %{})
 
         {:error, _} ->
@@ -76,6 +79,7 @@ defmodule ShiritorishiWeb.RoomChannel do
 
   def handle_info("after_join", socket) do
     public_replies = :ets.lookup_element(:public_replies, "public_replies", 2)
+    # TODO: controller/viewを削除してPublicReplyを直接使用する
     json = ShiritorishiWeb.PublicReplyView.render("index.json", public_replies: public_replies)
     push(socket, "public_replies", json)
 

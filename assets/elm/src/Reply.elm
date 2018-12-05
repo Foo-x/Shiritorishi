@@ -12,6 +12,8 @@ import Json.Encode as E
 type alias Reply =
     { user : String
     , word : String
+    , actualLastChar : String
+    , upperLastChar : String
     }
 
 
@@ -20,6 +22,8 @@ replyDecoder =
     D.succeed Reply
         |> required "user" string
         |> required "word" string
+        |> required "actual_last_char" string
+        |> required "upper_last_char" string
 
 
 replyEncoder : String -> String -> E.Value
