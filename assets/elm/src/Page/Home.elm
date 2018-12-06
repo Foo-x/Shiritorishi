@@ -2,6 +2,7 @@ module Page.Home exposing (..)
 
 import Browser
 import Browser.Dom as Dom
+import Component.HelpModal as HelpModal
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick, onInput, keyCode)
@@ -28,6 +29,7 @@ type alias Model =
     , userValidity : Validity
     , wordValidity : Validity
     , invalidMessage : String
+    , helpModalModel : HelpModal.Model
     }
 
 
@@ -47,6 +49,7 @@ init session =
       , userValidity = Valid
       , wordValidity = Valid
       , invalidMessage = ""
+      , helpModalModel = HelpModal.Inactive
       }
     , Cmd.batch
         [ Websocket.websocketListen ("room:lobby", "new_msg")
@@ -90,7 +93,7 @@ view model =
             , attribute "role" "navigation"
             , attribute "aria-label" "main navigation"
             ]
-            [ div 
+            [ div
                 [ class "navbar-brand" ]
                 [ a
                     [ class "navbar-item"
@@ -109,9 +112,10 @@ view model =
                     [ class "navbar-end" ]
                     [ div
                         [ class "navbar-item" ]
-                        -- TODO: ヘルプ画面実装
-                        [ a
-                            [ class "button transparent" ]
+                        [ button
+                            [ class "button transparent"
+                            , onClick (HelpModalMsg HelpModal.Activate)
+                            ]
                             [ span
                                 [ class "icon has-text-grey-light" ]
                                 [ i
@@ -245,6 +249,7 @@ view model =
                     ]
                 ]
             ]
+        , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
         ]
     }
 
@@ -364,7 +369,7 @@ classFromValidity validity base =
     case validity of
         Valid ->
             class base
-        
+
         Invalid ->
             class <| base ++ " " ++ "is-danger"
 
@@ -385,6 +390,7 @@ type Msg
     | ClearUserValidity
     | ClearWordValidity
     | KeyDown Int
+    | HelpModalMsg HelpModal.Msg
     | SendReply String String
 
 
@@ -492,6 +498,13 @@ update msg model =
                     if String.isEmpty user then defaultUser else user
             in
             ( model, Websocket.websocketSend ( "room:lobby", "new_msg", replyEncoder actualUser word ) )
+
+        HelpModalMsg subMsg ->
+            let
+                ( subModel, subCmd ) =
+                    HelpModal.update subMsg model.helpModalModel
+            in
+            ( { model | helpModalModel = subModel }, Cmd.map HelpModalMsg subCmd )
 
 
 updateHeight : Cmd Msg
