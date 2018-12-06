@@ -6,6 +6,7 @@
     "watch": "webpack --mode development --watch-stdin"
   },
   "dependencies": {
+    "bulma": "^0.7.2",
     "bulma-divider": "^2.0.1",
     "elm-phoenix-websocket-ports": "^1.0.1",
     "phoenix": "file:../deps/phoenix",

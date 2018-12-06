@@ -1,3 +1,6 @@
+@import "../node_modules/bulma-divider/dist/css/bulma-divider.min.css";
+@import "../node_modules/bulma/css/bulma.min.css";
+
 #shi-navbar-menu {
   background-color: transparent;
   padding: initial;
@@ -49,7 +52,7 @@ html, body {
 }
 
 .shi-primary {
-  background-color: #F5A623 !important;
+  background-color: #F5A623;
 }
 
 .shi-secondary {

@@ -13,7 +13,6 @@
 // to also remove its path from "config.paths.watched".
 import "phoenix_html"
 import css from "../css/app.css"
-import bulmaDividerCss from "../css/bulma-divider.min.css"
 
 // Import local files
 //
