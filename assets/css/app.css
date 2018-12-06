@@ -36,6 +36,11 @@
   height: 46px;
 }
 
+#help-content {
+  overflow: auto;
+  max-height: calc(100vh - 160px - 44px);
+}
+
 body {
   display: flex;
   flex-direction: column;
