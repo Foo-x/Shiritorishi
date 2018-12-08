@@ -32,7 +32,8 @@ view model =
             [ article
                 [ class "message" ]
                 [ div
-                    [ class "message-header has-background-light has-text-dark" ]
+                    [ id "help-header"
+                    , class "message-header has-text-grey-dark" ]
                     [ p
                         []
                         [ text "ルール" ]
@@ -45,7 +46,7 @@ view model =
                     ]
                 , div
                     [ id "help-content"
-                    , class "message-body has-background-white content" ]
+                    , class "message-body content" ]
                     [ ul
                         []
                         [ li
@@ -249,10 +250,10 @@ modalClass : Model -> Html.Attribute msg
 modalClass model =
     case model of
         Active ->
-            class "modal is-active"
+            class "modal modal-fx-slideBottom is-active"
 
         Inactive ->
-            class "modal"
+            class "modal modal-fx-slideBottom"
 
 
 

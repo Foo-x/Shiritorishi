@@ -1,5 +1,6 @@
 @import "../node_modules/bulma-divider/dist/css/bulma-divider.min.css";
 @import "../node_modules/bulma/css/bulma.min.css";
+@import "../node_modules/bulma-modal-fx/dist/css/modal-fx.min.css";
 
 #shi-navbar-menu {
   background-color: transparent;
@@ -34,6 +35,10 @@
 
 #shi-invalid-message {
   height: 46px;
+}
+
+#help-header {
+  background-color: #FDE4BB;
 }
 
 #help-content {
