@@ -60,7 +60,6 @@ init session =
         , Websocket.websocketListen ("room:lobby", "invalid_word")
         , Websocket.websocketListen ("room:lobby", "valid_word")
         , Websocket.websocketListen ("room:lobby", "presence_diff")
-        , updateHeight
         , LocalStorage.storageGetItem "user"
         ]
     )
