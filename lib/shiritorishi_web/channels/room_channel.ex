@@ -99,7 +99,7 @@ defmodule ShiritorishiWeb.RoomChannel do
       |> Map.get(:upper_last_char)
 
     cond do
-      (String.length word) < 2 ->
+      (String.length word) < 2 || (String.length word) > 20 ->
         {:error, gettext "word:invalid length"}
 
       !valid_first?(word, last_char) ->

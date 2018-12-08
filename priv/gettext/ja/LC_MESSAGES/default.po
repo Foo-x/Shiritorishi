@@ -29,7 +29,7 @@ msgstr "最後の文字に「ん」や「ン」を使用することはできま
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel.ex:90
 msgid "word:invalid length"
-msgstr "2文字以上の単語を入力してください。"
+msgstr "2文字以上、20文字以下の単語を入力してください。"
 
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel.ex:25
