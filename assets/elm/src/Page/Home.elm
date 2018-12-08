@@ -43,8 +43,9 @@ type Validity
 init : Session -> (Model, Cmd Msg)
 init session =
     ( { session = session
-      , publicReplies = []
-      , user = ""
+      -- 各項目がガクガクしないようにする
+      , publicReplies = [ Reply "　" "　" "　" "　" ]
+      , user = "　"
       , word = ""
       , height = 0
       , userCount = 1
@@ -281,7 +282,8 @@ latestWord model =
             text reply.word
 
         Nothing ->
-            text ""
+            -- 区切り線がガクガクしないようにする
+            text "　"
 
 
 allReplies : Model -> List (Html msg)
@@ -517,7 +519,8 @@ update msg model =
                     ( { model | user = user }, Cmd.none )
 
                 _ ->
-                    ( model, Cmd.none )
+                    -- placeholderを表示させる
+                    ( { model | user = "" }, Cmd.none )
 
         ReceiveFromLocalStorage (_, _) ->
             ( model, Cmd.none )
