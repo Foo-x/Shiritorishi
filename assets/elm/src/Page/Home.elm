@@ -7,7 +7,9 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick, onInput, keyCode)
 import Json.Decode as D
+import Json.Encode as E
 import Ports.Websocket as Websocket
+import Ports.LocalStorage as LocalStorage
 import Regex exposing (Regex)
 import Reply exposing (Reply, replyDecoder, replyEncoder)
 import Set exposing (Set)
@@ -59,6 +61,7 @@ init session =
         , Websocket.websocketListen ("room:lobby", "valid_word")
         , Websocket.websocketListen ("room:lobby", "presence_diff")
         , updateHeight
+        , LocalStorage.storageGetItem "user"
         ]
     )
 
@@ -191,6 +194,7 @@ view model =
                                         , type_ "text"
                                         , placeholder defaultUser
                                         , onInput UpdateUser
+                                        , value model.user
                                         ]
                                         []
                                     ]
@@ -390,8 +394,10 @@ type Msg
     | ClearUserValidity
     | ClearWordValidity
     | KeyDown Int
-    | HelpModalMsg HelpModal.Msg
     | SendReply String String
+    | HelpModalMsg HelpModal.Msg
+    | ReceiveFromLocalStorage (String, D.Value)
+    | SaveUser String
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -451,7 +457,7 @@ update msg model =
               | word = ""
               , invalidMessage = ""
               }
-            , Cmd.none
+            , Task.perform (\_ -> SaveUser model.user) (Task.succeed ())
             )
 
         WebsocketReceive ("room:lobby", "presence_diff", payload) ->
@@ -506,6 +512,20 @@ update msg model =
             in
             ( { model | helpModalModel = subModel }, Cmd.map HelpModalMsg subCmd )
 
+        ReceiveFromLocalStorage ("user", value) ->
+            case D.decodeValue (D.nullable D.string) value of
+                Ok (Just user) ->
+                    ( { model | user = user }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ReceiveFromLocalStorage (_, _) ->
+            ( model, Cmd.none )
+
+        SaveUser user ->
+            ( model, LocalStorage.storageSetItem ("user", E.string user))
+
 
 updateHeight : Cmd Msg
 updateHeight =
@@ -537,4 +557,7 @@ userCountDecoder =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Websocket.websocketReceive WebsocketReceive
+    Sub.batch
+        [ Websocket.websocketReceive WebsocketReceive
+        , LocalStorage.storageGetItemResponse ReceiveFromLocalStorage
+        ]

@@ -68,11 +68,11 @@ update msg model =
 
         ( UrlChanged url, _ ) ->
             changeRouteTo (Route.fromUrl url) model
-        
+
         ( HomeMsg subMsg, Home home ) ->
             Home.update subMsg home
                 |> updateWith Home HomeMsg
-        
+
         ( _, _ ) ->
             ( model, Cmd.none )
 
@@ -117,7 +117,7 @@ subscriptions model =
     case model of
         Home home ->
             Sub.map HomeMsg (Home.subscriptions home)
-    
+
         _ ->
             Sub.none
 

@@ -22,6 +22,7 @@ import "phoenix_html"
 
 import * as phoenix from "phoenix"
 import websocketPortsFactory from "elm-phoenix-websocket-ports"
+import localStoragePorts from "elm-local-storage-ports"
 
 import { Elm } from "../elm/src/Main.elm"
 
@@ -33,3 +34,4 @@ const elm = Elm.Main.init({
 })
 
 websocketPorts.register(elm.ports)
+localStoragePorts.register(elm.ports)
