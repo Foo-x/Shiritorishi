@@ -11,31 +11,41 @@ msgid ""
 msgstr ""
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:102
+#: lib/shiritorishi_web/channels/room_channel/worker.ex:79
 msgid "word:already used"
 msgstr ""
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:93
+#: lib/shiritorishi_web/channels/room_channel/worker.ex:70
 msgid "word:invalid first"
 msgstr ""
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:96
+#: lib/shiritorishi_web/channels/room_channel/worker.ex:73
 msgid "word:invalid last"
 msgstr ""
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:90
+#: lib/shiritorishi_web/channels/room_channel/worker.ex:67
 msgid "word:invalid length"
 msgstr ""
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:25
+#: lib/shiritorishi_web/channels/room_channel/worker.ex:51
 msgid "user:invalid"
 msgstr ""
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel.ex:99
+#: lib/shiritorishi_web/channels/room_channel/worker.ex:76
 msgid "word:invalid char"
+msgstr ""
+
+#, elixir-format
+#: lib/shiritorishi_web/channels/room_channel/worker.ex:38
+msgid "db:error insert"
+msgstr ""
+
+#, elixir-format
+#: lib/shiritorishi_web/channels/room_channel.ex:25
+msgid "job:error"
 msgstr ""

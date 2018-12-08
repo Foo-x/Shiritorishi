@@ -27,6 +27,9 @@ defmodule Shiritorishi.Application do
     opts = [strategy: :one_for_one, name: Shiritorishi.Supervisor]
     link = Supervisor.start_link(children, opts)
 
+    :ok = Honeydew.start_queue(:my_queue)
+    :ok = Honeydew.start_workers(:my_queue, ShiritorishiWeb.RoomChannel.Worker, num: 1)
+
     :ets.new(:public_replies, [:public, :named_table])
     :ets.insert(:public_replies, {"public_replies", get_public_replies()})
 

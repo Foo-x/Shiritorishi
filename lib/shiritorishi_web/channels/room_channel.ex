@@ -1,12 +1,7 @@
 defmodule ShiritorishiWeb.RoomChannel do
   use Phoenix.Channel
   alias ShiritorishiWeb.Presence
-  alias Shiritorishi.Repo
-  alias Shiritorishi.PublicReply
-  alias Shiritorishi.KanaDict
   import ShiritorishiWeb.Gettext
-
-  @public_replies_max_length 50
 
   def join("room:lobby", _message, socket) do
     send(self(), "after_join")
@@ -17,52 +12,17 @@ defmodule ShiritorishiWeb.RoomChannel do
   end
 
   def handle_in("new_msg", %{"user" => user, "word" => word}, socket) do
-    is_user_valid = user |> String.trim |> String.length |> (&(&1 != 0 and &1 <= 20)).()
-    user_status =
-      if is_user_valid do
-        {:ok}
-      else
-        {:error, gettext "user:invalid"}
-      end
+    job_result = {:validate_and_insert, [user, word]} |> Honeydew.async(:my_queue, reply: true) |> Honeydew.yield
+    case job_result do
+      {:ok, {:ok, result}} ->
+        broadcast!(socket, "new_msg", result)
+        push(socket, "valid_word", %{})
 
-    with {:error, message} <- user_status do
-      push(socket, "invalid_user", %{data: message})
-    end
+      {:ok, {:error, event, message}} ->
+        push(socket, event, %{data: message})
 
-    public_replies = :ets.lookup_element(:public_replies, "public_replies", 2)
-    word_status = validate_word(word, public_replies)
-    with {:error, message} <- word_status do
-      push(socket, "invalid_word", %{data: message})
-    end
-
-    with {:ok} <- user_status,
-         {:ok} <- word_status
-    do
-      actual_last_char = word
-        |> KanaDict.strip_ignored
-        |> String.last
-      upper_last_char = KanaDict.to_upper actual_last_char
-      reply = %PublicReply{
-        user: user,
-        word: word,
-        actual_last_char: actual_last_char,
-        upper_last_char: upper_last_char
-      }
-      case Repo.insert reply do
-        {:ok, _} ->
-          new_public_replies = public_replies
-            |> List.insert_at(0, reply)
-            |> Enum.take(@public_replies_max_length)
-          :ets.insert(:public_replies, {"public_replies", new_public_replies})
-          json_reply = reply
-            |> Map.from_struct
-            |> Map.take([:user, :word, :actual_last_char, :upper_last_char])
-          broadcast!(socket, "new_msg", json_reply)
-          push(socket, "valid_word", %{})
-
-        {:error, _} ->
-          IO.inspect "!! something wrong with inserting reply !!"
-      end
+      nil ->
+        push(socket, "error_job", %{data: gettext("job:error")})
     end
 
     {:noreply, socket}
@@ -88,39 +48,5 @@ defmodule ShiritorishiWeb.RoomChannel do
       online_at: inspect(System.system_time(:second))
     })
     {:noreply, socket}
-  end
-
-  def validate_word(word, public_replies) do
-    words = public_replies
-      |> Enum.map(&(Map.get(&1, :word)))
-
-    last_char = public_replies
-      |> List.first
-      |> Map.get(:upper_last_char)
-
-    cond do
-      (String.length word) < 2 || (String.length word) > 20 ->
-        {:error, gettext "word:invalid length"}
-
-      !valid_first?(word, last_char) ->
-        {:error, gettext("word:invalid first", last_char: last_char)}
-
-      String.ends_with?(word, ["ん", "ン"]) ->
-        {:error, gettext "word:invalid last"}
-
-      !KanaDict.valid_text?(word) ->
-        {:error, gettext "word:invalid char"}
-
-      Enum.member?(words, word) ->
-        {:error, gettext("word:already used", word: word)}
-
-      true ->
-        {:ok}
-    end
-  end
-
-  def valid_first?(word, last_char) do
-    first_char = String.first word
-    KanaDict.to_hira(first_char) == KanaDict.to_hira(last_char)
   end
 end

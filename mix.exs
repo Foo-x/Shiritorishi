@@ -42,7 +42,9 @@ defmodule Shiritorishi.Mixfile do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:gettext, "~> 0.11"},
       {:plug_cowboy, "~> 2.0"},
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+      # from hex will conflict ecto version(2.0 <-> 3.0)
+      {:honeydew, git: "https://github.com/koudelka/honeydew.git", tag: "v1.2.6"}
     ]
   end
 
