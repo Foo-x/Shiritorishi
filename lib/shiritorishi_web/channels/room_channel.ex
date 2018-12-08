@@ -39,9 +39,7 @@ defmodule ShiritorishiWeb.RoomChannel do
 
   def handle_info("after_join", socket) do
     public_replies = :ets.lookup_element(:public_replies, "public_replies", 2)
-    # TODO: controller/viewを削除してPublicReplyを直接使用する
-    json = ShiritorishiWeb.PublicReplyView.render("index.json", public_replies: public_replies)
-    push(socket, "public_replies", json)
+    push(socket, "public_replies", %{data: public_replies})
 
     push(socket, "presence_state", Presence.list(socket))
     {:ok, _} = Presence.track(socket, socket.assigns.user_id, %{

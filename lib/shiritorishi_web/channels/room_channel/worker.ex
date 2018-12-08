@@ -24,13 +24,11 @@ defmodule ShiritorishiWeb.RoomChannel.Worker do
       }
       case Repo.insert reply do
         {:ok, _} ->
+          result = PublicReply.take_info(reply)
           new_public_replies = public_replies
-            |> List.insert_at(0, reply)
+            |> List.insert_at(0, result)
             |> Enum.take(@public_replies_max_length)
           :ets.insert(:public_replies, {"public_replies", new_public_replies})
-          result = reply
-            |> Map.from_struct
-            |> Map.take([:user, :word, :actual_last_char, :upper_last_char])
           {:ok, result}
 
         {:error, _} ->

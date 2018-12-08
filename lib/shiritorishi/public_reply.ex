@@ -18,4 +18,10 @@ defmodule Shiritorishi.PublicReply do
     |> cast(attrs, [:user, :word, :actual_last_char, :upper_last_char])
     |> validate_required([:user, :word, :actual_last_char, :upper_last_char])
   end
+
+  def take_info(public_reply) do
+    public_reply
+      |> Map.from_struct
+      |> Map.take([:user, :word, :actual_last_char, :upper_last_char])
+  end
 end

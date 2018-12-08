@@ -49,5 +49,6 @@ defmodule Shiritorishi.Application do
       |> limit(@public_replies_max_length)
       |> Repo.all
       |> Enum.sort_by(&(&1.id), &>=/2)
+      |> Enum.map(&(PublicReply.take_info(&1)))
   end
 end
