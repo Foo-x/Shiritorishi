@@ -115,8 +115,8 @@ updateWith toModel toMsg ( subModel, subCmd ) =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
-        Home home ->
-            Sub.map HomeMsg (Home.subscriptions home)
+        Home _ ->
+            Sub.map HomeMsg Home.subscriptions
 
         _ ->
             Sub.none

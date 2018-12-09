@@ -8,6 +8,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick, onInput, keyCode)
 import Json.Decode as D
 import Json.Encode as E
+import Maybe.Ext as MaybeExt
 import Ports.Websocket as Websocket
 import Ports.LocalStorage as LocalStorage
 import Regex exposing (Regex)
@@ -79,8 +80,7 @@ defaultUser = "名無しりとり"
 
 
 toSession : Model -> Session
-toSession model =
-    model.session
+toSession = .session
 
 
 
@@ -267,15 +267,15 @@ brandLogo =
 
 
 createHeightStr : Model -> String
-createHeightStr model =
-    String.fromFloat model.height ++ "px"
+createHeightStr { height } =
+    String.fromFloat height ++ "px"
 
 
 latestWord : Model -> Html msg
-latestWord model =
+latestWord { publicReplies } =
     let
         head =
-            List.head model.publicReplies
+            List.head publicReplies
     in
     case head of
         Just reply ->
@@ -287,8 +287,8 @@ latestWord model =
 
 
 allReplies : Model -> List (Html msg)
-allReplies model =
-    List.map toReplyLine model.publicReplies
+allReplies { publicReplies } =
+    List.map toReplyLine publicReplies
 
 
 myFind : String -> String -> List Regex.Match
@@ -303,11 +303,11 @@ myFind regexStr string =
 
 splitForLastChar : String -> String -> (String, String, Maybe String)
 splitForLastChar word actualLastChar =
-    case myFind ("(.*)(" ++ actualLastChar ++ ")(.*)") word of
-        head :: tail ->
+    case myFind ("(.*)" ++ actualLastChar ++ "(.*)") word of
+        head :: _ ->
             case head.submatches of
-                maybeFirst :: maybeSecond :: maybeThird :: _ ->
-                    (Maybe.withDefault "" maybeFirst, actualLastChar, maybeThird)
+                maybeFirst :: maybeSecond :: _ ->
+                    (Maybe.withDefault "" maybeFirst, actualLastChar, maybeSecond)
 
                 _ ->
                     ( "", "", Nothing )
@@ -318,16 +318,6 @@ splitForLastChar word actualLastChar =
 
 toReplyWord : String -> String -> List (Html msg)
 toReplyWord word actualLastChar =
-    let
-        untilLastChar initStr lastStr =
-            [ span
-                []
-                [ text initStr ]
-            , span
-                [ class "has-text-weight-bold" ]
-                [ text lastStr ]
-            ]
-    in
     case splitForLastChar word actualLastChar of
         ( initStr, lastStr, Nothing ) ->
             untilLastChar initStr lastStr
@@ -338,6 +328,16 @@ toReplyWord word actualLastChar =
                     []
                     [ text ignored ]
                 ]
+
+
+untilLastChar initStr lastStr =
+    [ span
+        []
+        [ text initStr ]
+    , span
+        [ class "has-text-weight-bold" ]
+        [ text lastStr ]
+    ]
 
 
 toReplyLine : Reply -> Html msg
@@ -354,10 +354,10 @@ toReplyLine reply =
 
 
 nextHintPlaceholder : Model -> Attribute msg
-nextHintPlaceholder model =
+nextHintPlaceholder { publicReplies } =
     let
         maybeLastChar =
-            model.publicReplies
+            publicReplies
                 |> List.head
                 |> Maybe.map (\reply -> reply.upperLastChar)
     in
@@ -405,86 +405,67 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         WebsocketReceive ("room:lobby", "new_msg", payload) ->
-            case D.decodeValue replyDecoder payload of
-                Ok reply ->
-                    ( { model | publicReplies = reply :: model.publicReplies |> List.take publicRepliesMaxLength }, updateHeight )
-
-                Err _ ->
-                    ( model, Cmd.none )
+            D.decodeValue replyDecoder payload
+                |> Result.map (\reply -> reply :: model.publicReplies)
+                |> Result.map (List.take publicRepliesMaxLength)
+                |> Result.map (\publicReplies -> { model | publicReplies = publicReplies })
+                |> Result.map (\newModel -> ( newModel, updateHeight ))
+                |> Result.withDefault ( model, Cmd.none )
 
         WebsocketReceive ("room:lobby", "public_replies", payload) ->
-            case D.decodeValue repliesDecoder payload of
-                Ok publicReplies ->
-                    ( { model | publicReplies = publicReplies |> List.take publicRepliesMaxLength }, updateHeight )
-
-                Err _ ->
-                    ( model, Cmd.none )
+            D.decodeValue repliesDecoder payload
+                |> Result.map (List.take publicRepliesMaxLength)
+                |> Result.map (\publicReplies -> { model | publicReplies = publicReplies })
+                |> Result.map (\newModel -> ( newModel, updateHeight ))
+                |> Result.withDefault ( model, Cmd.none )
 
         WebsocketReceive ("room:lobby", "invalid_user", payload) ->
-            case D.decodeValue messageDecoder payload of
-                Ok message ->
-                    ( { model
-                      | invalidMessage = message
-                      , userValidity = Invalid
-                      }
-                    , updateHeight
-                    )
-
-                Err _ ->
-                    ( model, Cmd.none )
+            D.decodeValue messageDecoder payload
+                |> Result.map (\message -> { model | invalidMessage = message, userValidity = Invalid })
+                |> Result.withDefault model
+                |> \newModel -> ( newModel, Cmd.none )
 
         WebsocketReceive ("room:lobby", "invalid_word", payload) ->
-            case D.decodeValue messageDecoder payload of
-                Ok message ->
+            D.decodeValue messageDecoder payload
+                |> Result.map (\message ->
                     if model.userValidity == Invalid then
-                        ( { model
-                          | wordValidity = Invalid
-                          }
-                        , updateHeight
-                        )
+                        { model | wordValidity = Invalid}
                     else
-                        ( { model
-                          | invalidMessage = message
-                          , wordValidity = Invalid
-                          }
-                        , updateHeight
-                        )
-
-                Err _ ->
-                    ( model, Cmd.none )
+                        { model | invalidMessage = message, wordValidity = Invalid })
+                |> Result.withDefault model
+                |> \newModel -> ( newModel, Cmd.none )
 
         WebsocketReceive ("room:lobby", "valid_word", payload) ->
             ( { model
               | word = ""
               , invalidMessage = ""
               }
-            , Task.perform (\_ -> SaveUser model.user) (Task.succeed ())
+            , Cmd.none
             )
+                |> andThen (SaveUser model.user)
 
         WebsocketReceive ("room:lobby", "presence_diff", payload) ->
-            case D.decodeValue userCountDecoder payload of
-                Ok userCount ->
-                    ( { model | userCount = userCount }, Cmd.none )
-
-                Err _ ->
-                    ( model, Cmd.none )
+            D.decodeValue userCountDecoder payload
+                |> Result.map (\userCount -> { model | userCount = userCount })
+                |> Result.withDefault model
+                |> \newModel -> ( newModel, Cmd.none )
 
         WebsocketReceive (_, _, _) ->
             ( model, Cmd.none )
 
         UpdateUser user ->
-            ( { model | user = user }, Task.perform (\_ -> ClearUserValidity) (Task.succeed ()) )
+            ( { model | user = user }, Cmd.none )
+                |> andThen ClearUserValidity
 
         UpdateWord word ->
-            ( { model | word = word }, Task.perform (\_ -> ClearWordValidity) (Task.succeed ()) )
+            ( { model | word = word }, Cmd.none )
+                |> andThen ClearWordValidity
 
         UpdateHeight result ->
-            case result of
-                Ok element ->
-                    ( { model | height = calcHeight element }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
+            result
+                |> Result.map (\element -> { model | height = calcHeight element })
+                |> Result.withDefault model
+                |> \newModel -> ( newModel, Cmd.none )
 
         ClearUserValidity ->
             ( { model | userValidity = Valid }, Cmd.none )
@@ -495,9 +476,10 @@ update msg model =
         KeyDown key ->
             case key of
                 13 ->
-                    ( model, Task.perform (\_ -> SendReply model.user model.word) (Task.succeed ()) )
+                    ( model, Cmd.none )
+                        |> andThen (SendReply model.user model.word)
                 _ ->
-                    (model, Cmd.none )
+                    ( model, Cmd.none )
 
         SendReply user word ->
             let
@@ -514,13 +496,12 @@ update msg model =
             ( { model | helpModalModel = subModel }, Cmd.map HelpModalMsg subCmd )
 
         ReceiveFromLocalStorage ("user", value) ->
-            case D.decodeValue (D.nullable D.string) value of
-                Ok (Just user) ->
-                    ( { model | user = user }, Cmd.none )
-
-                _ ->
-                    -- placeholderを表示させる
-                    ( { model | user = "" }, Cmd.none )
+            D.decodeValue (D.nullable D.string) value
+                |> Result.toMaybe
+                |> MaybeExt.flatten
+                -- placeholderを表示させる
+                |> Maybe.withDefault ""
+                |> \user -> ( { model | user = user }, Cmd.none )
 
         ReceiveFromLocalStorage (_, _) ->
             ( model, Cmd.none )
@@ -546,19 +527,28 @@ repliesDecoder =
 
 messageDecoder : D.Decoder String
 messageDecoder =
-    D.at ["data"] <| D.string
+    D.at ["data"] D.string
 
 
 userCountDecoder : D.Decoder Int
 userCountDecoder =
-    D.at ["user_count"] <| D.int
+    D.at ["user_count"] D.int
+
+
+andThen : Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+andThen nextMsg ( previousModel, previousCmd ) =
+    let
+        ( newModel, newCmd ) =
+            update nextMsg previousModel
+    in
+    ( newModel, Cmd.batch [ previousCmd, newCmd ] )
 
 
 -- SUBSCRIPTIONS
 
 
-subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions : Sub Msg
+subscriptions =
     Sub.batch
         [ Websocket.websocketReceive WebsocketReceive
         , LocalStorage.storageGetItemResponse ReceiveFromLocalStorage
