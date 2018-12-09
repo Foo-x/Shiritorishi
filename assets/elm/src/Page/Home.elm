@@ -6,6 +6,7 @@ import Component.HelpModal as HelpModal
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (on, onClick, onInput, keyCode)
+import Html.Lazy as Lazy
 import Json.Decode as D
 import Json.Encode as E
 import Maybe.Ext as MaybeExt
@@ -139,7 +140,7 @@ view model =
                     [ class "is-size-2 has-text-centered has-text-weight-bold" ]
                     [ p
                         [ class "break-word" ]
-                        [ latestWord model ]
+                        [ Lazy.lazy latestWord model.publicReplies ]
                     ]
                 , div
                     [ class "is-divider" ]
@@ -153,14 +154,11 @@ view model =
                             [ div
                                 [ id "shi-replies"
                                 , class "column is-11"
-                                , style "max-height" (createHeightStr model)
+                                , style "max-height" (createHeightStr model.height)
                                 ]
                                 [ table
                                     [ class "table is-fullwidth" ]
-                                    [ tbody
-                                        []
-                                        (allReplies model)
-                                    ]
+                                    [ Lazy.lazy allReplies model.publicReplies ]
                                 ]
                             ]
                         ]
@@ -225,7 +223,7 @@ view model =
                                     [ input
                                         [ classFromValidity model.wordValidity "input"
                                         , type_ "text"
-                                        , nextHintPlaceholder model
+                                        , nextHintPlaceholder model.publicReplies
                                         , onInput UpdateWord
                                         , onKeyDown KeyDown
                                         , value model.word
@@ -266,13 +264,13 @@ brandLogo =
     ]
 
 
-createHeightStr : Model -> String
-createHeightStr { height } =
+createHeightStr : Float -> String
+createHeightStr height =
     String.fromFloat height ++ "px"
 
 
-latestWord : Model -> Html msg
-latestWord { publicReplies } =
+latestWord : List Reply -> Html msg
+latestWord publicReplies =
     let
         head =
             List.head publicReplies
@@ -286,19 +284,36 @@ latestWord { publicReplies } =
             text "　"
 
 
-allReplies : Model -> List (Html msg)
-allReplies { publicReplies } =
-    List.map toReplyLine publicReplies
+allReplies : List Reply -> Html msg
+allReplies publicReplies =
+    tbody [] (List.map toReplyLine publicReplies)
 
 
-myFind : String -> String -> List Regex.Match
-myFind regexStr string =
-    case Regex.fromString regexStr of
-        Just regex ->
-            Regex.find regex string
-
-        Nothing ->
+toReplyLine : Reply -> Html msg
+toReplyLine reply =
+    tr
+        []
+        [ th
+            [ class "shi-primary-dark-text" ]
+            [ text reply.user ]
+        , td
             []
+            (toReplyWord reply.word reply.actualLastChar)
+        ]
+
+
+toReplyWord : String -> String -> List (Html msg)
+toReplyWord word actualLastChar =
+    case splitForLastChar word actualLastChar of
+        ( initStr, lastStr, Nothing ) ->
+            untilLastChar initStr lastStr
+
+        ( initStr, lastStr, Just ignored ) ->
+            List.append (untilLastChar initStr lastStr)
+                [ span
+                    []
+                    [ text ignored ]
+                ]
 
 
 splitForLastChar : String -> String -> (String, String, Maybe String)
@@ -316,20 +331,17 @@ splitForLastChar word actualLastChar =
             ( "", "", Nothing )
 
 
-toReplyWord : String -> String -> List (Html msg)
-toReplyWord word actualLastChar =
-    case splitForLastChar word actualLastChar of
-        ( initStr, lastStr, Nothing ) ->
-            untilLastChar initStr lastStr
+myFind : String -> String -> List Regex.Match
+myFind regexStr string =
+    case Regex.fromString regexStr of
+        Just regex ->
+            Regex.find regex string
 
-        ( initStr, lastStr, Just ignored ) ->
-            List.append (untilLastChar initStr lastStr)
-                [ span
-                    []
-                    [ text ignored ]
-                ]
+        Nothing ->
+            []
 
 
+untilLastChar : String -> String -> List (Html msg)
 untilLastChar initStr lastStr =
     [ span
         []
@@ -340,21 +352,8 @@ untilLastChar initStr lastStr =
     ]
 
 
-toReplyLine : Reply -> Html msg
-toReplyLine reply =
-    tr
-        []
-        [ th
-            [ class "shi-primary-dark-text" ]
-            [ text reply.user ]
-        , td
-            []
-            (toReplyWord reply.word reply.actualLastChar)
-        ]
-
-
-nextHintPlaceholder : Model -> Attribute msg
-nextHintPlaceholder { publicReplies } =
+nextHintPlaceholder : List Reply -> Attribute msg
+nextHintPlaceholder publicReplies =
     let
         maybeLastChar =
             publicReplies
@@ -376,7 +375,7 @@ classFromValidity validity base =
             class base
 
         Invalid ->
-            class <| base ++ " " ++ "is-danger"
+            class <| base ++ " is-danger"
 
 
 onKeyDown : (Int -> msg) -> Attribute msg
