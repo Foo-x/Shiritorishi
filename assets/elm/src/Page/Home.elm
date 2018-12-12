@@ -12,6 +12,7 @@ import Json.Encode as E
 import Maybe.Ext as MaybeExt
 import Ports.Websocket as Websocket
 import Ports.LocalStorage as LocalStorage
+import Process
 import Regex exposing (Regex)
 import Reply exposing (Reply, replyDecoder, replyEncoder)
 import Set exposing (Set)
@@ -63,7 +64,10 @@ init session =
         , Websocket.websocketListen ("room:lobby", "invalid_word")
         , Websocket.websocketListen ("room:lobby", "valid_word")
         , Websocket.websocketListen ("room:lobby", "presence_diff")
-        , LocalStorage.storageGetItem "user"
+        , Process.sleep 0
+            |> Task.perform (\_ -> FetchPublicReplies)
+        , Process.sleep 0
+            |> Task.perform (\_ -> SetStorageGetItem "user")
         ]
     )
 
@@ -388,6 +392,7 @@ onKeyDown tagger =
 
 type Msg
     = WebsocketReceive (String, String, D.Value)
+    | FetchPublicReplies
     | UpdateUser String
     | UpdateWord String
     | UpdateHeight (Result Dom.Error Dom.Element)
@@ -396,6 +401,7 @@ type Msg
     | KeyDown Int
     | SendReply String String
     | HelpModalMsg HelpModal.Msg
+    | SetStorageGetItem String
     | ReceiveFromLocalStorage (String, D.Value)
     | SaveUser String
 
@@ -452,6 +458,9 @@ update msg model =
         WebsocketReceive (_, _, _) ->
             ( model, Cmd.none )
 
+        FetchPublicReplies ->
+            ( model, Websocket.websocketSend ( "room:lobby", "fetch_public_replies", E.null ) )
+
         UpdateUser user ->
             ( { model | user = user }, Cmd.none )
                 |> andThen ClearUserValidity
@@ -493,6 +502,9 @@ update msg model =
                     HelpModal.update subMsg model.helpModalModel
             in
             ( { model | helpModalModel = subModel }, Cmd.map HelpModalMsg subCmd )
+
+        SetStorageGetItem key ->
+            ( model, LocalStorage.storageGetItem key )
 
         ReceiveFromLocalStorage ("user", value) ->
             D.decodeValue (D.nullable D.string) value

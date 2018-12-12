@@ -28,6 +28,14 @@ defmodule ShiritorishiWeb.RoomChannel do
     {:noreply, socket}
   end
 
+  def handle_in("fetch_public_replies", _payload, socket) do
+    public_replies = :ets.lookup_element(:public_replies, "public_replies", 2)
+    push(socket, "public_replies", %{data: public_replies})
+
+    IO.inspect "pushed public replies"
+    {:noreply, socket}
+  end
+
   intercept ["presence_diff"]
 
   def handle_out("presence_diff", payload, socket) do
@@ -38,9 +46,6 @@ defmodule ShiritorishiWeb.RoomChannel do
   end
 
   def handle_info("after_join", socket) do
-    public_replies = :ets.lookup_element(:public_replies, "public_replies", 2)
-    push(socket, "public_replies", %{data: public_replies})
-
     push(socket, "presence_state", Presence.list(socket))
     {:ok, _} = Presence.track(socket, socket.assigns.user_id, %{
       online_at: inspect(System.system_time(:second))
