@@ -353,18 +353,15 @@ toReplyLine ( index, reply ) dropdownClass =
         , td
             [ id "shi-word-search" ]
             [ div
-                [ dropdownClass
-                , onClick <| ToggleDropdown index
-
-                -- onBlurだとバブリングしないので意図した動作にならない
-                , on "focusout" (D.succeed InactivateDropdown)
-                ]
+                [ dropdownClass ]
                 [ div
                     [ class "dropdown-trigger" ]
                     [ button
                         [ class "button transparent"
                         , attribute "aria-haspopup" "true"
                         , attribute "aria-controls" "dropdown-menu"
+                        , onClick <| ToggleDropdown index
+                        , onBlurOutOfDropdown index
                         ]
                         [ span
                             [ class "icon" ]
@@ -383,7 +380,12 @@ toReplyLine ( index, reply ) dropdownClass =
                     [ div
                         [ class "dropdown-content" ]
                         [ a
-                            [ class "dropdown-item" ]
+                            [ class "dropdown-item"
+
+                            -- onBlurOutOfDropdown内でrelatedTargetにアクセスするために必要
+                            , tabindex 0
+                            , attribute "data-dropdown-member-index" (String.fromInt index)
+                            ]
                             -- TODO
                             [ text "todo" ]
                         ]
@@ -443,6 +445,34 @@ untilLastChar initStr lastStr =
     ]
 
 
+onBlurOutOfDropdown : Index -> Attribute Msg
+onBlurOutOfDropdown index =
+    on "blur" <| D.map (inactivateDropdownMapper index) dataInDropdownPicker
+
+
+dataInDropdownPicker : D.Decoder (Maybe String)
+dataInDropdownPicker =
+    D.oneOf
+        [ D.at [ "relatedTarget", "dataset", "dropdownMemberIndex" ] (D.nullable D.string)
+        , D.field "relatedTarget" (D.null Nothing)
+        ]
+
+
+inactivateDropdownMapper : Index -> Maybe String -> Msg
+inactivateDropdownMapper index maybeIndex =
+    -- 開いているdropdown内 → NoOp; 外 → InactivateDropdown
+    Maybe.map
+        (\actualIndex ->
+            if String.fromInt index == actualIndex then
+                NoOp
+
+            else
+                InactivateDropdown
+        )
+        maybeIndex
+        |> Maybe.withDefault InactivateDropdown
+
+
 nextHintPlaceholder : List Reply -> Attribute msg
 nextHintPlaceholder publicReplies =
     let
@@ -478,10 +508,10 @@ onKeyDown tagger =
 -- UPDATE
 
 
-type
-    Msg
-    -- About Model
-    = ClearUserValidity
+type Msg
+    = NoOp
+      -- About Model
+    | ClearUserValidity
     | ClearWordValidity
     | UpdateHeight (Result Dom.Error Dom.Element)
     | UpdateUser String
@@ -505,6 +535,9 @@ type
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         ClearUserValidity ->
             ( { model | userValidity = Valid }, Cmd.none )
 
@@ -539,8 +572,12 @@ update msg model =
 
         ToggleDropdown index ->
             case model.searchDropdownActiveIndex of
-                Just _ ->
-                    ( { model | searchDropdownActiveIndex = Nothing }, Cmd.none )
+                Just currentIndex ->
+                    if currentIndex == index then
+                        ( { model | searchDropdownActiveIndex = Nothing }, Cmd.none )
+
+                    else
+                        ( { model | searchDropdownActiveIndex = Just index }, Cmd.none )
 
                 Nothing ->
                     ( { model | searchDropdownActiveIndex = Just index }, Cmd.none )
