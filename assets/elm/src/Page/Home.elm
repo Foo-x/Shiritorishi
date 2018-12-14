@@ -162,7 +162,9 @@ view model =
                     [ class "is-divider" ]
                     []
                 , div
-                    [ class "columns is-mobile" ]
+                    [ id "shi-replies-box"
+                    , class "columns is-mobile"
+                    ]
                     [ div
                         [ class "column is-offset-1" ]
                         [ div
