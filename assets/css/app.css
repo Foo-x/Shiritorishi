@@ -9,7 +9,7 @@
 
 #shi-main {
   flex: 1;
-  padding: 2rem 1.5rem 0.5rem;
+  padding: 1.5rem 1.5rem 0.5rem;
 }
 
 #shi-replies {
@@ -121,6 +121,10 @@ table.table tbody td {
 a.dropdown-item {
   width: initial;
   padding: .375rem 1rem;
+}
+
+.is-divider {
+  margin: 1.5rem 0;
 }
 
 /* https://github.com/jgthms/bulma/issues/1445#issuecomment-345503099 */
