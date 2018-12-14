@@ -1,5 +1,4 @@
-module Maybe.Ext exposing (..)
-
+module Maybe.Ext exposing (flatten)
 
 
 flatten : Maybe (Maybe a) -> Maybe a

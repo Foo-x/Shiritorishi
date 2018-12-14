@@ -1,17 +1,17 @@
-module Page.Home exposing (..)
+module Page.Home exposing (Index, Model, Msg(..), Validity(..), allReplies, andThen, brandLogo, calcHeight, classFromValidity, createDropdownClass, createDropdownClassList, createHeightStr, defaultUser, footerHeight, init, latestWord, messageDecoder, myFind, nextHintPlaceholder, onKeyDown, publicRepliesMaxLength, repliesDecoder, searchDropdownClass, splitForLastChar, subscriptions, toReplyLine, toReplyWord, toSession, untilLastChar, update, updateHeight, userCountDecoder, view)
 
 import Browser
 import Browser.Dom as Dom
 import Component.HelpModal as HelpModal
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (on, onClick, onInput, keyCode)
+import Html.Events exposing (keyCode, on, onClick, onInput)
 import Html.Lazy as Lazy
 import Json.Decode as D
 import Json.Encode as E
 import Maybe.Ext as MaybeExt
-import Ports.Websocket as Websocket
 import Ports.LocalStorage as LocalStorage
+import Ports.Websocket as Websocket
 import Process
 import Regex exposing (Regex)
 import Reply exposing (Reply, replyDecoder, replyEncoder)
@@ -44,15 +44,17 @@ type Validity
     | Invalid
 
 
-type alias Index = Int
+type alias Index =
+    Int
 
 
-init : Session -> (Model, Cmd Msg)
+init : Session -> ( Model, Cmd Msg )
 init session =
     ( { session = session
+
       -- 各項目がガクガクしないようにする
-      , publicReplies = [ Reply "　" "　" "　" "　" ]
-      , user = "　"
+      , publicReplies = [ Reply "\u{3000}" "\u{3000}" "\u{3000}" "\u{3000}" ]
+      , user = "\u{3000}"
       , word = ""
       , height = 0
       , userCount = 1
@@ -63,12 +65,12 @@ init session =
       , searchDropdownActiveIndex = Nothing
       }
     , Cmd.batch
-        [ Websocket.websocketListen ("room:lobby", "new_msg")
-        , Websocket.websocketListen ("room:lobby", "public_replies")
-        , Websocket.websocketListen ("room:lobby", "invalid_user")
-        , Websocket.websocketListen ("room:lobby", "invalid_word")
-        , Websocket.websocketListen ("room:lobby", "valid_word")
-        , Websocket.websocketListen ("room:lobby", "presence_diff")
+        [ Websocket.websocketListen ( "room:lobby", "new_msg" )
+        , Websocket.websocketListen ( "room:lobby", "public_replies" )
+        , Websocket.websocketListen ( "room:lobby", "invalid_user" )
+        , Websocket.websocketListen ( "room:lobby", "invalid_word" )
+        , Websocket.websocketListen ( "room:lobby", "valid_word" )
+        , Websocket.websocketListen ( "room:lobby", "presence_diff" )
         , Process.sleep 0
             |> Task.perform (\_ -> FetchPublicReplies)
         , Process.sleep 0
@@ -78,19 +80,23 @@ init session =
 
 
 footerHeight : Float
-footerHeight = 181
+footerHeight =
+    181
 
 
 publicRepliesMaxLength : Int
-publicRepliesMaxLength = 50
+publicRepliesMaxLength =
+    50
 
 
 defaultUser : String
-defaultUser = "名無しりとり"
+defaultUser =
+    "名無しりとり"
 
 
 toSession : Model -> Session
-toSession = .session
+toSession =
+    .session
 
 
 
@@ -142,7 +148,8 @@ view model =
             ]
         , section
             [ id "shi-main"
-            , class "section" ]
+            , class "section"
+            ]
             [ div
                 [ class "container" ]
                 [ div
@@ -176,7 +183,8 @@ view model =
             ]
         , footer
             [ id "shi-footer"
-            , class "footer" ]
+            , class "footer"
+            ]
             [ div
                 [ class "columns is-mobile" ]
                 [ div
@@ -224,7 +232,8 @@ view model =
                             ]
                         , div
                             [ id "shi-word"
-                            , class "columns is-mobile" ]
+                            , class "columns is-mobile"
+                            ]
                             [ div
                                 [ class "column is-11 field has-addons" ]
                                 [ div
@@ -251,7 +260,8 @@ view model =
                             ]
                         , div
                             [ id "shi-invalid-message"
-                            , class "columns is-mobile" ]
+                            , class "columns is-mobile"
+                            ]
                             [ p
                                 [ class "column help is-danger" ]
                                 [ text model.invalidMessage ]
@@ -290,7 +300,7 @@ latestWord publicReplies =
 
         Nothing ->
             -- 区切り線がガクガクしないようにする
-            text "　"
+            text "\u{3000}"
 
 
 allReplies : List Reply -> Maybe Index -> Html Msg
@@ -320,6 +330,7 @@ createDropdownClass : Index -> Index -> Attribute Msg
 createDropdownClass activeIndex thisIndex =
     if thisIndex == activeIndex then
         class <| searchDropdownClass ++ " is-active"
+
     else
         class searchDropdownClass
 
@@ -329,8 +340,8 @@ searchDropdownClass =
     "dropdown is-right"
 
 
-toReplyLine : (Index, Reply) -> Attribute Msg -> Html Msg
-toReplyLine (index, reply) dropdownClass =
+toReplyLine : ( Index, Reply ) -> Attribute Msg -> Html Msg
+toReplyLine ( index, reply ) dropdownClass =
     tr
         []
         [ th
@@ -344,6 +355,7 @@ toReplyLine (index, reply) dropdownClass =
             [ div
                 [ dropdownClass
                 , onClick <| ToggleDropdown index
+
                 -- onBlurだとバブリングしないので意図した動作にならない
                 , on "focusout" (D.succeed InactivateDropdown)
                 ]
@@ -395,13 +407,13 @@ toReplyWord word actualLastChar =
                 ]
 
 
-splitForLastChar : String -> String -> (String, String, Maybe String)
+splitForLastChar : String -> String -> ( String, String, Maybe String )
 splitForLastChar word actualLastChar =
     case myFind ("(.*)" ++ actualLastChar ++ "(.*)") word of
         head :: _ ->
             case head.submatches of
                 maybeFirst :: maybeSecond :: _ ->
-                    (Maybe.withDefault "" maybeFirst, actualLastChar, maybeSecond)
+                    ( Maybe.withDefault "" maybeFirst, actualLastChar, maybeSecond )
 
                 _ ->
                     ( "", "", Nothing )
@@ -462,89 +474,48 @@ onKeyDown tagger =
     on "keydown" (D.map tagger keyCode)
 
 
+
 -- UPDATE
 
 
-type Msg
-    = WebsocketReceive (String, String, D.Value)
-    | FetchPublicReplies
+type
+    Msg
+    -- About Model
+    = ClearUserValidity
+    | ClearWordValidity
+    | UpdateHeight (Result Dom.Error Dom.Element)
     | UpdateUser String
     | UpdateWord String
-    | UpdateHeight (Result Dom.Error Dom.Element)
-    | ClearUserValidity
-    | ClearWordValidity
-    | KeyDown Int
-    | SendReply String String
-    | HelpModalMsg HelpModal.Msg
-    | SetStorageGetItem String
-    | ReceiveFromLocalStorage (String, D.Value)
-    | SaveUser String
-    | ToggleDropdown Index
+      -- About event
     | InactivateDropdown
+    | KeyDown Int
+    | ToggleDropdown Index
+      -- About LocalStorage
+    | ReceiveFromLocalStorage ( String, D.Value )
+    | SaveUser String
+    | SetStorageGetItem String
+      -- About Websocket
+    | FetchPublicReplies
+    | SendReply String String
+    | WebsocketReceive ( String, String, D.Value )
+      -- About imported msg
+    | HelpModalMsg HelpModal.Msg
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        WebsocketReceive ("room:lobby", "new_msg", payload) ->
-            D.decodeValue replyDecoder payload
-                |> Result.map (\reply -> reply :: model.publicReplies)
-                |> Result.map (List.take publicRepliesMaxLength)
-                |> Result.map (\publicReplies ->
-                    { model
-                    | publicReplies = publicReplies
-                    , searchDropdownActiveIndex = Nothing
-                    })
-                |> Result.map (\newModel -> ( newModel, updateHeight ))
-                |> Result.withDefault ( model, Cmd.none )
+        ClearUserValidity ->
+            ( { model | userValidity = Valid }, Cmd.none )
 
-        WebsocketReceive ("room:lobby", "public_replies", payload) ->
-            D.decodeValue repliesDecoder payload
-                |> Result.map (List.take publicRepliesMaxLength)
-                |> Result.map (\publicReplies ->
-                    { model
-                    | publicReplies = publicReplies
-                    , searchDropdownActiveIndex = Nothing
-                    })
-                |> Result.map (\newModel -> ( newModel, updateHeight ))
-                |> Result.withDefault ( model, Cmd.none )
+        ClearWordValidity ->
+            ( { model | wordValidity = Valid }, Cmd.none )
 
-        WebsocketReceive ("room:lobby", "invalid_user", payload) ->
-            D.decodeValue messageDecoder payload
-                |> Result.map (\message -> { model | invalidMessage = message, userValidity = Invalid })
+        UpdateHeight result ->
+            result
+                |> Result.map (\element -> { model | height = calcHeight element })
                 |> Result.withDefault model
-                |> \newModel -> ( newModel, Cmd.none )
-
-        WebsocketReceive ("room:lobby", "invalid_word", payload) ->
-            D.decodeValue messageDecoder payload
-                |> Result.map (\message ->
-                    if model.userValidity == Invalid then
-                        { model | wordValidity = Invalid}
-                    else
-                        { model | invalidMessage = message, wordValidity = Invalid })
-                |> Result.withDefault model
-                |> \newModel -> ( newModel, Cmd.none )
-
-        WebsocketReceive ("room:lobby", "valid_word", payload) ->
-            ( { model
-              | word = ""
-              , invalidMessage = ""
-              }
-            , Cmd.none
-            )
-                |> andThen (SaveUser model.user)
-
-        WebsocketReceive ("room:lobby", "presence_diff", payload) ->
-            D.decodeValue userCountDecoder payload
-                |> Result.map (\userCount -> { model | userCount = userCount })
-                |> Result.withDefault model
-                |> \newModel -> ( newModel, Cmd.none )
-
-        WebsocketReceive (_, _, _) ->
-            ( model, Cmd.none )
-
-        FetchPublicReplies ->
-            ( model, Websocket.websocketSend ( "room:lobby", "fetch_public_replies", E.null ) )
+                |> (\newModel -> ( newModel, Cmd.none ))
 
         UpdateUser user ->
             ( { model | user = user }, Cmd.none )
@@ -554,56 +525,17 @@ update msg model =
             ( { model | word = word }, Cmd.none )
                 |> andThen ClearWordValidity
 
-        UpdateHeight result ->
-            result
-                |> Result.map (\element -> { model | height = calcHeight element })
-                |> Result.withDefault model
-                |> \newModel -> ( newModel, Cmd.none )
-
-        ClearUserValidity ->
-            ( { model | userValidity = Valid }, Cmd.none )
-
-        ClearWordValidity ->
-            ( { model | wordValidity = Valid }, Cmd.none )
+        InactivateDropdown ->
+            ( { model | searchDropdownActiveIndex = Nothing }, Cmd.none )
 
         KeyDown key ->
             case key of
                 13 ->
                     ( model, Cmd.none )
                         |> andThen (SendReply model.user model.word)
+
                 _ ->
                     ( model, Cmd.none )
-
-        SendReply user word ->
-            let
-                actualUser =
-                    if String.isEmpty user then defaultUser else user
-            in
-            ( model, Websocket.websocketSend ( "room:lobby", "new_msg", replyEncoder actualUser word ) )
-
-        HelpModalMsg subMsg ->
-            let
-                ( subModel, subCmd ) =
-                    HelpModal.update subMsg model.helpModalModel
-            in
-            ( { model | helpModalModel = subModel }, Cmd.map HelpModalMsg subCmd )
-
-        SetStorageGetItem key ->
-            ( model, LocalStorage.storageGetItem key )
-
-        ReceiveFromLocalStorage ("user", value) ->
-            D.decodeValue (D.nullable D.string) value
-                |> Result.toMaybe
-                |> MaybeExt.flatten
-                -- placeholderを表示させる
-                |> Maybe.withDefault ""
-                |> \user -> ( { model | user = user }, Cmd.none )
-
-        ReceiveFromLocalStorage (_, _) ->
-            ( model, Cmd.none )
-
-        SaveUser user ->
-            ( model, LocalStorage.storageSetItem ("user", E.string user))
 
         ToggleDropdown index ->
             case model.searchDropdownActiveIndex of
@@ -613,8 +545,107 @@ update msg model =
                 Nothing ->
                     ( { model | searchDropdownActiveIndex = Just index }, Cmd.none )
 
-        InactivateDropdown ->
-            ( { model | searchDropdownActiveIndex = Nothing }, Cmd.none )
+        ReceiveFromLocalStorage ( "user", value ) ->
+            D.decodeValue (D.nullable D.string) value
+                |> Result.toMaybe
+                |> MaybeExt.flatten
+                -- placeholderを表示させる
+                |> Maybe.withDefault ""
+                |> (\user -> ( { model | user = user }, Cmd.none ))
+
+        ReceiveFromLocalStorage ( _, _ ) ->
+            ( model, Cmd.none )
+
+        SaveUser user ->
+            ( model, LocalStorage.storageSetItem ( "user", E.string user ) )
+
+        SetStorageGetItem key ->
+            ( model, LocalStorage.storageGetItem key )
+
+        FetchPublicReplies ->
+            ( model, Websocket.websocketSend ( "room:lobby", "fetch_public_replies", E.null ) )
+
+        SendReply user word ->
+            let
+                actualUser =
+                    if String.isEmpty user then
+                        defaultUser
+
+                    else
+                        user
+            in
+            ( model, Websocket.websocketSend ( "room:lobby", "new_msg", replyEncoder actualUser word ) )
+
+        WebsocketReceive ( "room:lobby", "invalid_user", payload ) ->
+            D.decodeValue messageDecoder payload
+                |> Result.map (\message -> { model | invalidMessage = message, userValidity = Invalid })
+                |> Result.withDefault model
+                |> (\newModel -> ( newModel, Cmd.none ))
+
+        WebsocketReceive ( "room:lobby", "invalid_word", payload ) ->
+            D.decodeValue messageDecoder payload
+                |> Result.map
+                    (\message ->
+                        if model.userValidity == Invalid then
+                            { model | wordValidity = Invalid }
+
+                        else
+                            { model | invalidMessage = message, wordValidity = Invalid }
+                    )
+                |> Result.withDefault model
+                |> (\newModel -> ( newModel, Cmd.none ))
+
+        WebsocketReceive ( "room:lobby", "new_msg", payload ) ->
+            D.decodeValue replyDecoder payload
+                |> Result.map (\reply -> reply :: model.publicReplies)
+                |> Result.map (List.take publicRepliesMaxLength)
+                |> Result.map
+                    (\publicReplies ->
+                        { model
+                            | publicReplies = publicReplies
+                            , searchDropdownActiveIndex = Nothing
+                        }
+                    )
+                |> Result.map (\newModel -> ( newModel, updateHeight ))
+                |> Result.withDefault ( model, Cmd.none )
+
+        WebsocketReceive ( "room:lobby", "presence_diff", payload ) ->
+            D.decodeValue userCountDecoder payload
+                |> Result.map (\userCount -> { model | userCount = userCount })
+                |> Result.withDefault model
+                |> (\newModel -> ( newModel, Cmd.none ))
+
+        WebsocketReceive ( "room:lobby", "public_replies", payload ) ->
+            D.decodeValue repliesDecoder payload
+                |> Result.map (List.take publicRepliesMaxLength)
+                |> Result.map
+                    (\publicReplies ->
+                        { model
+                            | publicReplies = publicReplies
+                            , searchDropdownActiveIndex = Nothing
+                        }
+                    )
+                |> Result.map (\newModel -> ( newModel, updateHeight ))
+                |> Result.withDefault ( model, Cmd.none )
+
+        WebsocketReceive ( "room:lobby", "valid_word", payload ) ->
+            ( { model
+                | word = ""
+                , invalidMessage = ""
+              }
+            , Cmd.none
+            )
+                |> andThen (SaveUser model.user)
+
+        WebsocketReceive ( _, _, _ ) ->
+            ( model, Cmd.none )
+
+        HelpModalMsg subMsg ->
+            let
+                ( subModel, subCmd ) =
+                    HelpModal.update subMsg model.helpModalModel
+            in
+            ( { model | helpModalModel = subModel }, Cmd.map HelpModalMsg subCmd )
 
 
 updateHeight : Cmd Msg
@@ -629,17 +660,17 @@ calcHeight element =
 
 repliesDecoder : D.Decoder (List Reply)
 repliesDecoder =
-    D.at ["data"] <| D.list replyDecoder
+    D.at [ "data" ] <| D.list replyDecoder
 
 
 messageDecoder : D.Decoder String
 messageDecoder =
-    D.at ["data"] D.string
+    D.at [ "data" ] D.string
 
 
 userCountDecoder : D.Decoder Int
 userCountDecoder =
-    D.at ["user_count"] D.int
+    D.at [ "user_count" ] D.int
 
 
 andThen : Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -649,6 +680,7 @@ andThen nextMsg ( previousModel, previousCmd ) =
             update nextMsg previousModel
     in
     ( newModel, Cmd.batch [ previousCmd, newCmd ] )
+
 
 
 -- SUBSCRIPTIONS

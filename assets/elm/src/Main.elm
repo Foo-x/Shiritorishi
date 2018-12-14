@@ -2,10 +2,10 @@ module Main exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
-import Page.Home as Home
-import Page.NotFound as NotFound
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Page.Home as Home
+import Page.NotFound as NotFound
 import Route exposing (Route)
 import Store.Session exposing (Session, fromNavKey)
 import Url
@@ -102,11 +102,12 @@ changeRouteTo maybeRoute model =
                 |> updateWith Home HomeMsg
 
 
-updateWith : (subModel -> Model) -> (subMsg -> Msg) -> (subModel, Cmd subMsg) -> (Model, Cmd Msg)
+updateWith : (subModel -> Model) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
 updateWith toModel toMsg ( subModel, subCmd ) =
     ( toModel subModel
     , Cmd.map toMsg subCmd
     )
+
 
 
 -- SUBSCRIPTIONS

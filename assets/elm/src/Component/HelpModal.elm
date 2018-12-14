@@ -1,4 +1,4 @@
-module Component.HelpModal exposing (..)
+module Component.HelpModal exposing (Model(..), Msg(..), modalClass, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -33,7 +33,8 @@ view model =
                 [ class "message" ]
                 [ div
                     [ id "help-header"
-                    , class "message-header has-text-grey-dark" ]
+                    , class "message-header has-text-grey-dark"
+                    ]
                     [ p
                         []
                         [ text "ルール" ]
@@ -46,7 +47,8 @@ view model =
                     ]
                 , div
                     [ id "help-content"
-                    , class "message-body content" ]
+                    , class "message-body content"
+                    ]
                     [ ul
                         []
                         [ li
@@ -265,7 +267,7 @@ type Msg
     | Inactivate
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Activate ->

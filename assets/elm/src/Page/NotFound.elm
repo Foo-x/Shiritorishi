@@ -1,8 +1,8 @@
-module Page.NotFound exposing (..)
+module Page.NotFound exposing (view)
 
 import Browser
 import Html exposing (Html, a, div, h1, section, text)
-import Html.Attributes exposing (class, id, attribute)
+import Html.Attributes exposing (attribute, class, id)
 import Route
 
 
@@ -28,7 +28,8 @@ view =
                         , a
                             [ class "button"
                             , Route.href Route.Home
-                            , attribute "role" "button" ]
+                            , attribute "role" "button"
+                            ]
                             [ text "Return to Home" ]
                         ]
                     ]
