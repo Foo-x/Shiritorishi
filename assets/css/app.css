@@ -22,6 +22,10 @@
   margin-bottom: 0;
 }
 
+#shi-word-search {
+  width: 1%;
+}
+
 #shi-user-counts {
   position: absolute;
   right: .75rem;
@@ -38,7 +42,7 @@
 }
 
 #help-header {
-  background-color: #FDE4BB;
+  background-color: #F5E6CE;
 }
 
 #help-content {
@@ -101,13 +105,22 @@ html, body {
 
 /* override */
 table.table tbody th {
-  width: 50%;
   text-align: right;
 }
 
-tbody tr th,
-tbody tr td {
-  border-color: #F5E6CE !important;
+table.table tbody th,
+table.table tbody td {
+  border-color: #F5E6CE;
+  vertical-align: middle;
+}
+
+.dropdown .dropdown-menu {
+  min-width: initial;
+}
+
+a.dropdown-item {
+  width: initial;
+  padding: .375rem 1rem;
 }
 
 /* https://github.com/jgthms/bulma/issues/1445#issuecomment-345503099 */

@@ -35,12 +35,16 @@ type alias Model =
     , wordValidity : Validity
     , invalidMessage : String
     , helpModalModel : HelpModal.Model
+    , searchDropdownActiveIndex : Maybe Index
     }
 
 
 type Validity
     = Valid
     | Invalid
+
+
+type alias Index = Int
 
 
 init : Session -> (Model, Cmd Msg)
@@ -56,6 +60,7 @@ init session =
       , wordValidity = Valid
       , invalidMessage = ""
       , helpModalModel = HelpModal.Inactive
+      , searchDropdownActiveIndex = Nothing
       }
     , Cmd.batch
         [ Websocket.websocketListen ("room:lobby", "new_msg")
@@ -162,7 +167,7 @@ view model =
                                 ]
                                 [ table
                                     [ class "table is-fullwidth" ]
-                                    [ Lazy.lazy allReplies model.publicReplies ]
+                                    [ Lazy.lazy2 allReplies model.publicReplies model.searchDropdownActiveIndex ]
                                 ]
                             ]
                         ]
@@ -288,13 +293,44 @@ latestWord publicReplies =
             text "　"
 
 
-allReplies : List Reply -> Html msg
-allReplies publicReplies =
-    tbody [] (List.map toReplyLine publicReplies)
+allReplies : List Reply -> Maybe Index -> Html Msg
+allReplies publicReplies activeIndex =
+    let
+        indexedReplies =
+            List.indexedMap Tuple.pair publicReplies
+
+        dropdownClassList =
+            createDropdownClassList (List.length publicReplies) activeIndex
+    in
+    tbody [] (List.map2 toReplyLine indexedReplies dropdownClassList)
 
 
-toReplyLine : Reply -> Html msg
-toReplyLine reply =
+createDropdownClassList : Int -> Maybe Index -> List (Attribute Msg)
+createDropdownClassList length activeIndex =
+    case activeIndex of
+        Just index ->
+            List.range 0 length
+                |> List.map2 createDropdownClass (List.repeat length index)
+
+        Nothing ->
+            List.repeat length (class searchDropdownClass)
+
+
+createDropdownClass : Index -> Index -> Attribute Msg
+createDropdownClass activeIndex thisIndex =
+    if thisIndex == activeIndex then
+        class <| searchDropdownClass ++ " is-active"
+    else
+        class searchDropdownClass
+
+
+searchDropdownClass : String
+searchDropdownClass =
+    "dropdown is-right"
+
+
+toReplyLine : (Index, Reply) -> Attribute Msg -> Html Msg
+toReplyLine (index, reply) dropdownClass =
     tr
         []
         [ th
@@ -303,6 +339,45 @@ toReplyLine reply =
         , td
             []
             (toReplyWord reply.word reply.actualLastChar)
+        , td
+            [ id "shi-word-search" ]
+            [ div
+                [ dropdownClass
+                , onClick <| ToggleDropdown index
+                -- onBlurだとバブリングしないので意図した動作にならない
+                , on "focusout" (D.succeed InactivateDropdown)
+                ]
+                [ div
+                    [ class "dropdown-trigger" ]
+                    [ button
+                        [ class "button transparent"
+                        , attribute "aria-haspopup" "true"
+                        , attribute "aria-controls" "dropdown-menu"
+                        ]
+                        [ span
+                            [ class "icon" ]
+                            [ i
+                                [ class "fas fa-search"
+                                , attribute "aria-hidden" "true"
+                                ]
+                                []
+                            ]
+                        ]
+                    ]
+                , div
+                    [ class "dropdown-menu"
+                    , attribute "role" "menu"
+                    ]
+                    [ div
+                        [ class "dropdown-content" ]
+                        [ a
+                            [ class "dropdown-item" ]
+                            -- TODO
+                            [ text "todo" ]
+                        ]
+                    ]
+                ]
+            ]
         ]
 
 
@@ -404,6 +479,8 @@ type Msg
     | SetStorageGetItem String
     | ReceiveFromLocalStorage (String, D.Value)
     | SaveUser String
+    | ToggleDropdown Index
+    | InactivateDropdown
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -413,14 +490,22 @@ update msg model =
             D.decodeValue replyDecoder payload
                 |> Result.map (\reply -> reply :: model.publicReplies)
                 |> Result.map (List.take publicRepliesMaxLength)
-                |> Result.map (\publicReplies -> { model | publicReplies = publicReplies })
+                |> Result.map (\publicReplies ->
+                    { model
+                    | publicReplies = publicReplies
+                    , searchDropdownActiveIndex = Nothing
+                    })
                 |> Result.map (\newModel -> ( newModel, updateHeight ))
                 |> Result.withDefault ( model, Cmd.none )
 
         WebsocketReceive ("room:lobby", "public_replies", payload) ->
             D.decodeValue repliesDecoder payload
                 |> Result.map (List.take publicRepliesMaxLength)
-                |> Result.map (\publicReplies -> { model | publicReplies = publicReplies })
+                |> Result.map (\publicReplies ->
+                    { model
+                    | publicReplies = publicReplies
+                    , searchDropdownActiveIndex = Nothing
+                    })
                 |> Result.map (\newModel -> ( newModel, updateHeight ))
                 |> Result.withDefault ( model, Cmd.none )
 
@@ -519,6 +604,17 @@ update msg model =
 
         SaveUser user ->
             ( model, LocalStorage.storageSetItem ("user", E.string user))
+
+        ToggleDropdown index ->
+            case model.searchDropdownActiveIndex of
+                Just _ ->
+                    ( { model | searchDropdownActiveIndex = Nothing }, Cmd.none )
+
+                Nothing ->
+                    ( { model | searchDropdownActiveIndex = Just index }, Cmd.none )
+
+        InactivateDropdown ->
+            ( { model | searchDropdownActiveIndex = Nothing }, Cmd.none )
 
 
 updateHeight : Cmd Msg
