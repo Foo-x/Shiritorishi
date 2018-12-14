@@ -26,12 +26,12 @@ msgid "word:invalid last"
 msgstr ""
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel/worker.ex:67
+#: lib/shiritorishi_web/channels/room_channel/worker.ex:65
 msgid "word:invalid length"
 msgstr ""
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel/worker.ex:51
+#: lib/shiritorishi_web/channels/room_channel/worker.ex:49
 msgid "user:invalid"
 msgstr ""
 
@@ -41,7 +41,7 @@ msgid "word:invalid char"
 msgstr ""
 
 #, elixir-format
-#: lib/shiritorishi_web/channels/room_channel/worker.ex:38
+#: lib/shiritorishi_web/channels/room_channel/worker.ex:36
 msgid "db:error insert"
 msgstr ""
 

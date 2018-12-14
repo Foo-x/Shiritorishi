@@ -65,7 +65,9 @@ defmodule ShiritorishiWeb.RoomChannel.Worker do
         Tuple.append(error_tuple, gettext "word:invalid length")
 
       !valid_first?(word, last_char) ->
-        Tuple.append(error_tuple, gettext("word:invalid first", last_char: last_char))
+        last_char_hira = KanaDict.to_hira last_char
+        last_char_kata = KanaDict.to_kata last_char
+        Tuple.append(error_tuple, gettext("word:invalid first", last_char_hira: last_char_hira, last_char_kata: last_char_kata))
 
       String.ends_with?(word, ["ん", "ン"]) ->
         Tuple.append(error_tuple, gettext "word:invalid last")
