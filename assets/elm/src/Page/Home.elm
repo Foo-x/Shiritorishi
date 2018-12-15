@@ -1,11 +1,11 @@
-module Page.Home exposing (Index, Model, Msg(..), Validity(..), allReplies, andThen, brandLogo, calcHeight, classFromValidity, createDropdownClass, createDropdownClassList, createHeightStr, defaultUser, footerHeight, init, latestWord, messageDecoder, myFind, nextHintPlaceholder, onKeyDown, publicRepliesMaxLength, repliesDecoder, searchDropdownClass, splitForLastChar, subscriptions, toReplyLine, toReplyWord, toSession, untilLastChar, update, updateHeight, userCountDecoder, view)
+module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Browser
 import Browser.Dom as Dom
 import Component.HelpModal as HelpModal
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (keyCode, on, onClick, onInput)
+import Html.Events exposing (keyCode, on, onClick, onInput, stopPropagationOn)
 import Html.Lazy as Lazy
 import Json.Decode as D
 import Json.Encode as E
@@ -65,16 +65,14 @@ init session =
       , searchDropdownActiveIndex = Nothing
       }
     , Cmd.batch
-        [ Websocket.websocketListen ( "room:lobby", "new_msg" )
-        , Websocket.websocketListen ( "room:lobby", "public_replies" )
+        [ Websocket.websocketListen ( "room:lobby", "public_replies" )
+        , Websocket.websocketListen ( "room:lobby", "presence_diff" )
+        , Task.perform identity (Task.succeed FetchPublicReplies)
+        , Task.perform identity (Task.succeed <| SetStorageGetItem "user")
+        , Websocket.websocketListen ( "room:lobby", "new_msg" )
         , Websocket.websocketListen ( "room:lobby", "invalid_user" )
         , Websocket.websocketListen ( "room:lobby", "invalid_word" )
         , Websocket.websocketListen ( "room:lobby", "valid_word" )
-        , Websocket.websocketListen ( "room:lobby", "presence_diff" )
-        , Process.sleep 0
-            |> Task.perform (\_ -> FetchPublicReplies)
-        , Process.sleep 0
-            |> Task.perform (\_ -> SetStorageGetItem "user")
         ]
     )
 
@@ -107,172 +105,178 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "しりとりし"
     , body =
-        [ nav
-            [ class "navbar shi-navbar"
-            , attribute "role" "navigation"
-            , attribute "aria-label" "main navigation"
-            ]
+        [ div
+            (homeOutsideAttr model.searchDropdownActiveIndex)
             [ div
-                [ class "navbar-brand" ]
-                [ a
-                    [ class "navbar-item"
-                    , href "/"
+                [ class "home-inside-container" ]
+                [ nav
+                    [ class "navbar shi-navbar"
+                    , attribute "role" "navigation"
+                    , attribute "aria-label" "main navigation"
                     ]
-                    [ img
-                        brandLogo
-                        []
-                    ]
-                ]
-            , div
-                [ id "shi-navbar-menu"
-                , class "navbar-menu is-active"
-                ]
-                [ div
-                    [ class "navbar-end" ]
                     [ div
-                        [ class "navbar-item" ]
-                        [ button
-                            [ class "button transparent"
-                            , onClick (HelpModalMsg HelpModal.Activate)
+                        [ class "navbar-brand" ]
+                        [ a
+                            [ class "navbar-item"
+                            , href "/"
                             ]
-                            [ span
-                                [ class "icon has-text-grey-light" ]
-                                [ i
-                                    [ class "fas fa-question-circle" ]
-                                    []
-                                ]
+                            [ img
+                                brandLogo
+                                []
                             ]
                         ]
-                    ]
-                ]
-            ]
-        , section
-            [ id "shi-main"
-            , class "section"
-            ]
-            [ div
-                [ class "container" ]
-                [ div
-                    [ class "is-size-2 has-text-centered has-text-weight-bold" ]
-                    [ p
-                        [ class "break-word" ]
-                        [ Lazy.lazy latestWord model.publicReplies ]
-                    ]
-                , div
-                    [ class "is-divider" ]
-                    []
-                , div
-                    [ id "shi-replies-box"
-                    , class "columns is-mobile"
-                    ]
-                    [ div
-                        [ class "column is-offset-1" ]
-                        [ div
-                            [ class "columns is-mobile" ]
-                            [ div
-                                [ id "shi-replies"
-                                , class "column is-11"
-                                , style "max-height" (createHeightStr model.height)
-                                ]
-                                [ table
-                                    [ class "table is-fullwidth" ]
-                                    [ Lazy.lazy2 allReplies model.publicReplies model.searchDropdownActiveIndex ]
-                                ]
-                            ]
+                    , div
+                        [ id "shi-navbar-menu"
+                        , class "navbar-menu is-active"
                         ]
-                    ]
-                ]
-            ]
-        , footer
-            [ id "shi-footer"
-            , class "footer"
-            ]
-            [ div
-                [ class "columns is-mobile" ]
-                [ div
-                    [ class "column is-offset-1" ]
-                    [ div
-                        [ class "content" ]
                         [ div
-                            [ id "shi-name"
-                            , class "columns is-mobile"
-                            ]
+                            [ class "navbar-end" ]
                             [ div
-                                [ id "shi-name-field"
-                                , class "column is-5 field"
-                                ]
-                                [ label
-                                    [ class "label is-small" ]
-                                    [ text "名前" ]
-                                , div
-                                    [ class "control" ]
-                                    [ input
-                                        [ classFromValidity model.userValidity "input is-small"
-                                        , type_ "text"
-                                        , placeholder defaultUser
-                                        , onInput UpdateUser
-                                        , value model.user
-                                        ]
-                                        []
-                                    ]
-                                ]
-                            , div
-                                [ class "column is-2 is-offset-4 relative" ]
-                                [ div
-                                    [ id "shi-user-counts"
-                                    , class "is-size-7 has-text-grey"
+                                [ class "navbar-item" ]
+                                [ button
+                                    [ class "button transparent"
+                                    , onClick (HelpModalMsg HelpModal.Activate)
                                     ]
                                     [ span
-                                        [ class "icon is-small" ]
+                                        [ class "icon has-text-grey-light" ]
                                         [ i
-                                            [ class "fas fa-user" ]
+                                            [ class "fas fa-question-circle" ]
                                             []
                                         ]
-                                    , text <| String.fromInt model.userCount
                                     ]
                                 ]
-                            ]
-                        , div
-                            [ id "shi-word"
-                            , class "columns is-mobile"
-                            ]
-                            [ div
-                                [ class "column is-11 field has-addons" ]
-                                [ div
-                                    [ class "control is-expanded" ]
-                                    [ input
-                                        [ classFromValidity model.wordValidity "input"
-                                        , type_ "text"
-                                        , nextHintPlaceholder model.publicReplies
-                                        , onInput UpdateWord
-                                        , onKeyDown KeyDown
-                                        , value model.word
-                                        ]
-                                        []
-                                    ]
-                                , div
-                                    [ class "control" ]
-                                    [ button
-                                        [ class "button shi-primary has-text-white has-text-weight-semibold"
-                                        , onClick (SendReply model.user model.word)
-                                        ]
-                                        [ text "送信" ]
-                                    ]
-                                ]
-                            ]
-                        , div
-                            [ id "shi-invalid-message"
-                            , class "columns is-mobile"
-                            ]
-                            [ p
-                                [ class "column help is-danger" ]
-                                [ text model.invalidMessage ]
                             ]
                         ]
                     ]
+                , section
+                    [ id "shi-main"
+                    , class "section"
+                    ]
+                    [ div
+                        [ class "container" ]
+                        [ div
+                            [ class "is-size-2 has-text-centered has-text-weight-bold" ]
+                            [ p
+                                [ class "break-word" ]
+                                [ Lazy.lazy latestWord model.publicReplies ]
+                            ]
+                        , div
+                            [ class "is-divider" ]
+                            []
+                        , div
+                            [ id "shi-replies-box"
+                            , class "columns is-mobile"
+                            ]
+                            [ div
+                                [ class "column is-offset-1" ]
+                                [ div
+                                    [ class "columns is-mobile" ]
+                                    [ div
+                                        [ id "shi-replies"
+                                        , class "column is-11"
+                                        , style "max-height" (createHeightStr model.height)
+                                        ]
+                                        [ table
+                                            [ class "table is-fullwidth" ]
+                                            [ Lazy.lazy2 allReplies model.publicReplies model.searchDropdownActiveIndex ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                , footer
+                    [ id "shi-footer"
+                    , class "footer"
+                    ]
+                    [ div
+                        [ class "columns is-mobile" ]
+                        [ div
+                            [ class "column is-offset-1" ]
+                            [ div
+                                [ class "content" ]
+                                [ div
+                                    [ id "shi-name"
+                                    , class "columns is-mobile"
+                                    ]
+                                    [ div
+                                        [ id "shi-name-field"
+                                        , class "column is-5 field"
+                                        ]
+                                        [ label
+                                            [ class "label is-small" ]
+                                            [ text "名前" ]
+                                        , div
+                                            [ class "control" ]
+                                            [ input
+                                                [ classFromValidity model.userValidity "input is-small"
+                                                , type_ "text"
+                                                , placeholder defaultUser
+                                                , onInput UpdateUser
+                                                , value model.user
+                                                ]
+                                                []
+                                            ]
+                                        ]
+                                    , div
+                                        [ class "column is-2 is-offset-4 relative" ]
+                                        [ div
+                                            [ id "shi-user-counts"
+                                            , class "is-size-7 has-text-grey"
+                                            ]
+                                            [ span
+                                                [ class "icon is-small" ]
+                                                [ i
+                                                    [ class "fas fa-user" ]
+                                                    []
+                                                ]
+                                            , text <| String.fromInt model.userCount
+                                            ]
+                                        ]
+                                    ]
+                                , div
+                                    [ id "shi-word"
+                                    , class "columns is-mobile"
+                                    ]
+                                    [ div
+                                        [ class "column is-11 field has-addons" ]
+                                        [ div
+                                            [ class "control is-expanded" ]
+                                            [ input
+                                                [ classFromValidity model.wordValidity "input"
+                                                , type_ "text"
+                                                , nextHintPlaceholder model.publicReplies
+                                                , onInput UpdateWord
+                                                , onKeyDown KeyDown
+                                                , value model.word
+                                                ]
+                                                []
+                                            ]
+                                        , div
+                                            [ class "control" ]
+                                            [ button
+                                                [ class "button shi-primary has-text-white has-text-weight-semibold"
+                                                , onClick (SendReply model.user model.word)
+                                                ]
+                                                [ text "送信" ]
+                                            ]
+                                        ]
+                                    ]
+                                , div
+                                    [ id "shi-invalid-message"
+                                    , class "columns is-mobile"
+                                    ]
+                                    [ p
+                                        [ class "column help is-danger" ]
+                                        [ text model.invalidMessage ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
                 ]
             ]
-        , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
         ]
     }
 
@@ -283,6 +287,14 @@ brandLogo =
     , width 125
     , height 32
     ]
+
+
+homeOutsideAttr : Maybe Index -> List (Attribute Msg)
+homeOutsideAttr searchDropdownActiveIndex =
+    searchDropdownActiveIndex
+        |> Maybe.map (always [ on "click" <| D.succeed InactivateDropdown ])
+        |> Maybe.withDefault []
+        |> (::) (class "home-outside-container")
 
 
 createHeightStr : Float -> String
@@ -362,8 +374,7 @@ toReplyLine ( index, reply ) dropdownClass =
                         [ class "button transparent"
                         , attribute "aria-haspopup" "true"
                         , attribute "aria-controls" "dropdown-menu"
-                        , onClick <| ToggleDropdown index
-                        , onBlurOutOfDropdown index
+                        , stopPropagationOn "click" <| D.succeed ( ToggleDropdown index, True )
                         ]
                         [ span
                             [ class "icon" ]
@@ -382,12 +393,7 @@ toReplyLine ( index, reply ) dropdownClass =
                     [ div
                         [ class "dropdown-content" ]
                         [ a
-                            [ class "dropdown-item"
-
-                            -- onBlurOutOfDropdown内でrelatedTargetにアクセスするために必要
-                            , tabindex 0
-                            , attribute "data-dropdown-member-index" (String.fromInt index)
-                            ]
+                            [ class "dropdown-item" ]
                             -- TODO
                             [ text "todo" ]
                         ]
@@ -413,27 +419,18 @@ toReplyWord word actualLastChar =
 
 splitForLastChar : String -> String -> ( String, String, Maybe String )
 splitForLastChar word actualLastChar =
-    case myFind ("(.*)" ++ actualLastChar ++ "(.*)") word of
-        head :: _ ->
-            case head.submatches of
-                maybeFirst :: maybeSecond :: _ ->
-                    ( Maybe.withDefault "" maybeFirst, actualLastChar, maybeSecond )
+    if String.endsWith actualLastChar word then
+        ( String.left (String.length word - 1) word, actualLastChar, Nothing )
 
-                _ ->
-                    ( "", "", Nothing )
-
-        _ ->
-            ( "", "", Nothing )
-
-
-myFind : String -> String -> List Regex.Match
-myFind regexStr string =
-    case Regex.fromString regexStr of
-        Just regex ->
-            Regex.find regex string
-
-        Nothing ->
-            []
+    else
+        let
+            lastCharIndex =
+                String.indices actualLastChar word
+                    |> List.reverse
+                    |> List.head
+                    |> Maybe.withDefault 0
+        in
+        ( String.left lastCharIndex word, actualLastChar, Just <| String.dropLeft (lastCharIndex + 1) word )
 
 
 untilLastChar : String -> String -> List (Html msg)
@@ -445,34 +442,6 @@ untilLastChar initStr lastStr =
         [ class "has-text-weight-bold" ]
         [ text lastStr ]
     ]
-
-
-onBlurOutOfDropdown : Index -> Attribute Msg
-onBlurOutOfDropdown index =
-    on "blur" <| D.map (inactivateDropdownMapper index) dataInDropdownPicker
-
-
-dataInDropdownPicker : D.Decoder (Maybe String)
-dataInDropdownPicker =
-    D.oneOf
-        [ D.at [ "relatedTarget", "dataset", "dropdownMemberIndex" ] (D.nullable D.string)
-        , D.field "relatedTarget" (D.null Nothing)
-        ]
-
-
-inactivateDropdownMapper : Index -> Maybe String -> Msg
-inactivateDropdownMapper index maybeIndex =
-    -- 開いているdropdown内 → NoOp; 外 → InactivateDropdown
-    Maybe.map
-        (\actualIndex ->
-            if String.fromInt index == actualIndex then
-                NoOp
-
-            else
-                InactivateDropdown
-        )
-        maybeIndex
-        |> Maybe.withDefault InactivateDropdown
 
 
 nextHintPlaceholder : List Reply -> Attribute msg

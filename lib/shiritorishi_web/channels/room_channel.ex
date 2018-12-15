@@ -31,8 +31,6 @@ defmodule ShiritorishiWeb.RoomChannel do
   def handle_in("fetch_public_replies", _payload, socket) do
     public_replies = :ets.lookup_element(:public_replies, "public_replies", 2)
     push(socket, "public_replies", %{data: public_replies})
-
-    IO.inspect "pushed public replies"
     {:noreply, socket}
   end
 
