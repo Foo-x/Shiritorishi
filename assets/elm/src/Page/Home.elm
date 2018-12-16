@@ -335,19 +335,30 @@ createDropdownClassList length activeIndex =
     case activeIndex of
         Just index ->
             List.range 0 length
-                |> List.map2 createDropdownClass (List.repeat length index)
+                |> List.map3 createDropdownClass (List.repeat length length) (List.repeat length index)
 
         Nothing ->
             List.repeat length (class searchDropdownClass)
 
 
-createDropdownClass : Index -> Index -> Attribute Msg
-createDropdownClass activeIndex thisIndex =
-    if thisIndex == activeIndex then
-        class <| searchDropdownClass ++ " is-active"
+createDropdownClass : Int -> Index -> Index -> Attribute Msg
+createDropdownClass length activeIndex thisIndex =
+    searchDropdownClass
+        |> (\classStr ->
+                if thisIndex == length - 1 then
+                    classStr ++ " is-up"
 
-    else
-        class searchDropdownClass
+                else
+                    classStr
+           )
+        |> (\classStr ->
+                if thisIndex == activeIndex then
+                    classStr ++ " is-active"
+
+                else
+                    classStr
+           )
+        |> class
 
 
 searchDropdownClass : String
