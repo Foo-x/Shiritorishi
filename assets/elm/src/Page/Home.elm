@@ -3,6 +3,7 @@ module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, v
 import Browser
 import Browser.Dom as Dom
 import Component.HelpModal as HelpModal
+import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (keyCode, on, onClick, onInput, stopPropagationOn)
@@ -368,37 +369,7 @@ toReplyLine ( index, reply ) dropdownClass =
             [ id "shi-word-search" ]
             [ div
                 [ dropdownClass ]
-                [ div
-                    [ class "dropdown-trigger" ]
-                    [ button
-                        [ class "button transparent"
-                        , attribute "aria-haspopup" "true"
-                        , attribute "aria-controls" "dropdown-menu"
-                        , stopPropagationOn "click" <| D.succeed ( ToggleDropdown index, True )
-                        ]
-                        [ span
-                            [ class "icon" ]
-                            [ i
-                                [ class "fas fa-search"
-                                , attribute "aria-hidden" "true"
-                                ]
-                                []
-                            ]
-                        ]
-                    ]
-                , div
-                    [ class "dropdown-menu"
-                    , attribute "role" "menu"
-                    ]
-                    [ div
-                        [ class "dropdown-content" ]
-                        [ a
-                            [ class "dropdown-item" ]
-                            -- TODO
-                            [ text "todo" ]
-                        ]
-                    ]
-                ]
+                (Dict.get index wordSearchDict |> Maybe.withDefault [])
             ]
         ]
 
@@ -415,6 +386,48 @@ toReplyWord word actualLastChar =
                     []
                     [ text ignored ]
                 ]
+
+
+wordSearchDict : Dict Int (List (Html Msg))
+wordSearchDict =
+    List.range 0 publicRepliesMaxLength
+        |> List.map
+            (\index ->
+                ( index
+                , [ div
+                        [ class "dropdown-trigger" ]
+                        [ button
+                            [ class "button transparent"
+                            , attribute "aria-haspopup" "true"
+                            , attribute "aria-controls" "dropdown-menu"
+                            , stopPropagationOn "click" <| D.succeed ( ToggleDropdown index, True )
+                            ]
+                            [ span
+                                [ class "icon" ]
+                                [ i
+                                    [ class "fas fa-search"
+                                    , attribute "aria-hidden" "true"
+                                    ]
+                                    []
+                                ]
+                            ]
+                        ]
+                  , div
+                        [ class "dropdown-menu"
+                        , attribute "role" "menu"
+                        ]
+                        [ div
+                            [ class "dropdown-content" ]
+                            [ a
+                                [ class "dropdown-item" ]
+                                -- TODO
+                                [ text "todo" ]
+                            ]
+                        ]
+                  ]
+                )
+            )
+        |> Dict.fromList
 
 
 splitForLastChar : String -> String -> ( String, String, Maybe String )
