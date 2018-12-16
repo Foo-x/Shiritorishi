@@ -108,6 +108,10 @@ html, body, .home-outside-container, .home-inside-container {
   align-items: baseline;
 }
 
+.is-vmiddle {
+  vertical-align: middle;
+}
+
 .relative {
   position: relative;
 }
@@ -129,7 +133,8 @@ table.table tbody td {
 
 a.dropdown-item {
   width: initial;
-  padding: .375rem 1rem;
+  padding: 0 .5rem;
+  text-align: center;
 }
 
 .is-divider {

@@ -368,6 +368,13 @@ searchDropdownClass =
 
 toReplyLine : ( Index, Reply ) -> Attribute Msg -> Html Msg
 toReplyLine ( index, reply ) dropdownClass =
+    let
+        dropdown =
+            Dict.get index dropdownTriggerDict
+                |> Maybe.map List.singleton
+                |> Maybe.withDefault []
+                |> List.append [ createDropdownMenu reply.word ]
+    in
     tr
         []
         [ th
@@ -380,7 +387,7 @@ toReplyLine ( index, reply ) dropdownClass =
             [ id "shi-word-search" ]
             [ div
                 [ dropdownClass ]
-                (Dict.get index wordSearchDict |> Maybe.withDefault [])
+                dropdown
             ]
         ]
 
@@ -399,46 +406,98 @@ toReplyWord word actualLastChar =
                 ]
 
 
-wordSearchDict : Dict Int (List (Html Msg))
-wordSearchDict =
+dropdownTriggerDict : Dict Int (Html Msg)
+dropdownTriggerDict =
     List.range 0 publicRepliesMaxLength
         |> List.map
             (\index ->
                 ( index
-                , [ div
-                        [ class "dropdown-trigger" ]
-                        [ button
-                            [ class "button transparent"
-                            , attribute "aria-haspopup" "true"
-                            , attribute "aria-controls" "dropdown-menu"
-                            , stopPropagationOn "click" <| D.succeed ( ToggleDropdown index, True )
-                            ]
-                            [ span
-                                [ class "icon" ]
-                                [ i
-                                    [ class "fas fa-search"
-                                    , attribute "aria-hidden" "true"
-                                    ]
-                                    []
+                , div
+                    [ class "dropdown-trigger" ]
+                    [ button
+                        [ class "button transparent"
+                        , attribute "aria-haspopup" "true"
+                        , attribute "aria-controls" "dropdown-menu"
+                        , stopPropagationOn "click" <| D.succeed ( ToggleDropdown index, True )
+                        ]
+                        [ span
+                            [ class "icon" ]
+                            [ i
+                                [ class "fas fa-search"
+                                , attribute "aria-hidden" "true"
                                 ]
+                                []
                             ]
                         ]
-                  , div
-                        [ class "dropdown-menu"
-                        , attribute "role" "menu"
-                        ]
-                        [ div
-                            [ class "dropdown-content" ]
-                            [ a
-                                [ class "dropdown-item" ]
-                                -- TODO
-                                [ text "todo" ]
-                            ]
-                        ]
-                  ]
+                    ]
                 )
             )
         |> Dict.fromList
+
+
+createDropdownMenu : String -> Html Msg
+createDropdownMenu word =
+    div
+        [ class "dropdown-menu"
+        , attribute "role" "menu"
+        ]
+        [ div
+            [ class "dropdown-content" ]
+            [ wordSearchItem
+                "/images/brands/google.png"
+                ("https://www.google.com/search?source=hp&q=" ++ word)
+                "Google"
+            , wordSearchItem
+                "/images/brands/google.png"
+                ("https://www.google.com/search?source=hp&tbm=isch&q=" ++ word)
+                "Google 画像"
+            , wordSearchItem
+                "/images/brands/google-news.png"
+                ("https://news.google.com/search?q=" ++ word)
+                "Google ニュース"
+            , wordSearchItem
+                "/images/brands/wikipedia.png"
+                ("https://ja.wikipedia.org/wiki/" ++ word)
+                "Wikipedia"
+            , wordSearchItem
+                "/images/brands/uncyclopedia.ico"
+                ("http://ja.uncyclopedia.info/wiki/" ++ word)
+                "アンサイクロペディア"
+            , wordSearchItem
+                "/images/brands/youtube.png"
+                ("https://www.youtube.com/results?search_query=" ++ word)
+                "YouTube"
+            , wordSearchItem
+                "/images/brands/twitter.ico"
+                ("https://twitter.com/search?q=" ++ word)
+                "Twitter"
+            , wordSearchItem
+                "/images/brands/instagram.ico"
+                ("https://www.instagram.com/explore/tags/" ++ word)
+                "Instagram"
+            ]
+        ]
+
+
+wordSearchItem : String -> String -> String -> Html Msg
+wordSearchItem srcStr hrefStr textStr =
+    a
+        [ class "dropdown-item"
+        , href hrefStr
+        , target "_blank"
+        ]
+        -- TODO
+        [ img
+            [ src srcStr
+            , class "is-vmiddle"
+            , width 16
+            , height 16
+            ]
+            []
+        , p
+            [ class "is-size-7" ]
+            [ text textStr ]
+        ]
 
 
 splitForLastChar : String -> String -> ( String, String, Maybe String )
