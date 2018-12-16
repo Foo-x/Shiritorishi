@@ -345,7 +345,7 @@ createDropdownClass : Int -> Index -> Index -> Attribute Msg
 createDropdownClass length activeIndex thisIndex =
     searchDropdownClass
         |> (\classStr ->
-                if thisIndex == length - 1 then
+                if thisIndex >= length - 10 then
                     classStr ++ " is-up"
 
                 else
