@@ -116,6 +116,23 @@ html, body, .home-outside-container, .home-inside-container {
   position: relative;
 }
 
+.shi-search-word-line > div {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media screen and (min-width: 769px), print {
+  .shi-search-word-line > div:nth-last-child(n + 5) {
+    padding-bottom: 0;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .shi-search-word-line > div:nth-last-child(n + 3) {
+    padding-bottom: 0;
+  }
+}
+
 /* override */
 table.table tbody th {
   text-align: right;

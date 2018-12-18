@@ -327,7 +327,7 @@ allReplies publicReplies activeIndex =
         dropdownClassList =
             createDropdownClassList (List.length publicReplies) activeIndex
     in
-    tbody [] (List.map2 toReplyLine indexedReplies dropdownClassList)
+    tbody [] (List.map2 toReplyLine indexedReplies dropdownClassList |> List.concat)
 
 
 createDropdownClassList : Int -> Maybe Index -> List (Attribute Msg)
@@ -366,7 +366,7 @@ searchDropdownClass =
     "dropdown is-right"
 
 
-toReplyLine : ( Index, Reply ) -> Attribute Msg -> Html Msg
+toReplyLine : ( Index, Reply ) -> Attribute Msg -> List (Html Msg)
 toReplyLine ( index, reply ) dropdownClass =
     let
         dropdown =
@@ -375,7 +375,7 @@ toReplyLine ( index, reply ) dropdownClass =
                 |> Maybe.withDefault []
                 |> List.append [ createDropdownMenu reply.word ]
     in
-    tr
+    [ tr
         []
         [ th
             [ class "shi-primary-dark-text" ]
@@ -390,6 +390,8 @@ toReplyLine ( index, reply ) dropdownClass =
                 dropdown
             ]
         ]
+    , toSearchWordLine reply.word
+    ]
 
 
 toReplyWord : String -> String -> List (Html msg)
@@ -433,6 +435,73 @@ dropdownTriggerDict =
                 )
             )
         |> Dict.fromList
+
+
+toSearchWordLine : String -> Html Msg
+toSearchWordLine word =
+    -- TODO: ボタンで開閉
+    td
+        [ colspan 3 ]
+        [ div
+            [ class "columns is-multiline is-mobile shi-search-word-line" ]
+            [ div
+                [ class "column is-half-mobile is-one-quarter-tablet" ]
+                [ wordSearchItem
+                    "/images/brands/google.png"
+                    ("https://www.google.com/search?source=hp&q=" ++ word)
+                    "Google"
+                ]
+            , div
+                [ class "column is-half-mobile is-one-quarter-tablet" ]
+                [ wordSearchItem
+                    "/images/brands/google.png"
+                    ("https://www.google.com/search?source=hp&tbm=isch&q=" ++ word)
+                    "Google 画像"
+                ]
+            , div
+                [ class "column is-half-mobile is-one-quarter-tablet" ]
+                [ wordSearchItem
+                    "/images/brands/google-news.png"
+                    ("https://news.google.com/search?q=" ++ word)
+                    "Google ニュース"
+                ]
+            , div
+                [ class "column is-half-mobile is-one-quarter-tablet" ]
+                [ wordSearchItem
+                    "/images/brands/wikipedia.png"
+                    ("https://ja.wikipedia.org/wiki/" ++ word)
+                    "Wikipedia"
+                ]
+            , div
+                [ class "column is-half-mobile is-one-quarter-tablet" ]
+                [ wordSearchItem
+                    "/images/brands/uncyclopedia.ico"
+                    ("http://ja.uncyclopedia.info/wiki/" ++ word)
+                    "アンサイクロペディア"
+                ]
+            , div
+                [ class "column is-half-mobile is-one-quarter-tablet" ]
+                [ wordSearchItem
+                    "/images/brands/youtube.png"
+                    ("https://www.youtube.com/results?search_query=" ++ word)
+                    "YouTube"
+                ]
+            , div
+                [ class "column is-half-mobile is-one-quarter-tablet" ]
+                [ wordSearchItem
+                    "/images/brands/twitter.ico"
+                    ("https://twitter.com/search?q=" ++ word)
+                    "Twitter"
+                ]
+            , div
+                [ class "column is-half-mobile is-one-quarter-tablet" ]
+                [ wordSearchItem
+                    "/images/brands/instagram.ico"
+                    ("https://www.instagram.com/explore/tags/" ++ word)
+                    "Instagram"
+                ]
+            ]
+        ]
 
 
 createDropdownMenu : String -> Html Msg
