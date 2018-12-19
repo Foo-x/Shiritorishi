@@ -54,6 +54,36 @@
   max-height: calc(100vh - 160px - 44px);
 }
 
+[id^="shi-search-word-line-parent"][aria-hidden="true"] {
+  padding-top: 0;
+  padding-bottom: 0;
+  border: 0;
+  transition:
+    padding-top .2s ease-in,
+    padding-bottom .2s ease-in,
+    border 0s step-start;
+}
+
+[id^="shi-search-word-line-parent"]:not([aria-hidden="true"]) {
+  transition:
+    padding-top .2s ease-out,
+    padding-bottom .2s ease-out,
+    border .1s step-end;
+}
+
+[id^="shi-search-word-line-parent"] > div {
+  overflow-y: hidden;
+}
+
+[id^="shi-search-word-line-parent"][aria-hidden="true"] > div {
+  max-height: 0 !important;
+  transition: max-height .2s ease-in;
+}
+
+[id^="shi-search-word-line-parent"]:not([aria-hidden="true"]) > div {
+  transition: max-height .2s ease-out;
+}
+
 html, body, .home-outside-container, .home-inside-container {
   min-height: 100%;
   height: 100%;

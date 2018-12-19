@@ -1,5 +1,6 @@
 module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
+import Array
 import Browser
 import Browser.Dom as Dom
 import Component.HelpModal as HelpModal
@@ -27,7 +28,7 @@ import Task
 
 type alias Model =
     { session : Session
-    , publicReplies : List Reply
+    , publicReplies : List ReplyWithMaxHeight
     , user : String
     , word : String
     , height : Float
@@ -37,6 +38,24 @@ type alias Model =
     , invalidMessage : String
     , helpModalModel : HelpModal.Model
     , searchDropdownActiveIndex : Maybe Index
+    }
+
+
+type alias MaxHeightWith a =
+    { a | maxHeight : Maybe Float }
+
+
+type alias ReplyWithMaxHeight =
+    MaxHeightWith Reply
+
+
+replyWithMaxHeightConstructor : Reply -> Maybe Float -> ReplyWithMaxHeight
+replyWithMaxHeightConstructor { user, word, actualLastChar, upperLastChar } maxHeight =
+    { user = user
+    , word = word
+    , actualLastChar = actualLastChar
+    , upperLastChar = upperLastChar
+    , maxHeight = maxHeight
     }
 
 
@@ -54,7 +73,7 @@ init session =
     ( { session = session
 
       -- 各項目がガクガクしないようにする
-      , publicReplies = [ Reply "\u{3000}" "\u{3000}" "\u{3000}" "\u{3000}" ]
+      , publicReplies = [ replyWithMaxHeightConstructor (Reply "\u{3000}" "\u{3000}" "\u{3000}" "\u{3000}") Nothing ]
       , user = "\u{3000}"
       , word = ""
       , height = 0
@@ -303,7 +322,7 @@ createHeightStr height =
     String.fromFloat height ++ "px"
 
 
-latestWord : List Reply -> Html msg
+latestWord : List ReplyWithMaxHeight -> Html msg
 latestWord publicReplies =
     let
         head =
@@ -318,7 +337,7 @@ latestWord publicReplies =
             text "\u{3000}"
 
 
-allReplies : List Reply -> Maybe Index -> Html Msg
+allReplies : List ReplyWithMaxHeight -> Maybe Index -> Html Msg
 allReplies publicReplies activeIndex =
     let
         indexedReplies =
@@ -366,7 +385,7 @@ searchDropdownClass =
     "dropdown is-right"
 
 
-toReplyLine : ( Index, Reply ) -> Attribute Msg -> List (Html Msg)
+toReplyLine : ( Index, ReplyWithMaxHeight ) -> Attribute Msg -> List (Html Msg)
 toReplyLine ( index, reply ) dropdownClass =
     let
         dropdown =
@@ -390,7 +409,7 @@ toReplyLine ( index, reply ) dropdownClass =
                 dropdown
             ]
         ]
-    , toSearchWordLine reply.word
+    , toSearchWordLine reply.word reply.maxHeight index
     ]
 
 
@@ -420,7 +439,7 @@ dropdownTriggerDict =
                         [ class "button transparent"
                         , attribute "aria-haspopup" "true"
                         , attribute "aria-controls" "dropdown-menu"
-                        , stopPropagationOn "click" <| D.succeed ( ToggleDropdown index, True )
+                        , stopPropagationOn "click" <| D.succeed ( FindSearchWordLineAndToggle index, True )
                         ]
                         [ span
                             [ class "icon" ]
@@ -437,68 +456,88 @@ dropdownTriggerDict =
         |> Dict.fromList
 
 
-toSearchWordLine : String -> Html Msg
-toSearchWordLine word =
-    -- TODO: ボタンで開閉
-    td
-        [ colspan 3 ]
-        [ div
-            [ class "columns is-multiline is-mobile shi-search-word-line" ]
+toSearchWordLine : String -> Maybe Float -> Index -> Html Msg
+toSearchWordLine word maxHeight index =
+    tr
+        []
+        [ td
+            [ id <| "shi-search-word-line-parent" ++ String.fromInt index
+            , colspan 3
+            , attribute "aria-hidden" <|
+                case maxHeight of
+                    Just _ ->
+                        "false"
+
+                    Nothing ->
+                        "true"
+            ]
             [ div
-                [ class "column is-half-mobile is-one-quarter-tablet" ]
-                [ wordSearchItem
-                    "/images/brands/google.png"
-                    ("https://www.google.com/search?source=hp&q=" ++ word)
-                    "Google"
+                [ id <| "shi-search-word-line-child" ++ String.fromInt index
+                , class "columns is-multiline is-mobile shi-search-word-line"
+                , style "max-height" <|
+                    case maxHeight of
+                        Just n ->
+                            String.fromFloat n ++ "px"
+
+                        Nothing ->
+                            ""
                 ]
-            , div
-                [ class "column is-half-mobile is-one-quarter-tablet" ]
-                [ wordSearchItem
-                    "/images/brands/google.png"
-                    ("https://www.google.com/search?source=hp&tbm=isch&q=" ++ word)
-                    "Google 画像"
-                ]
-            , div
-                [ class "column is-half-mobile is-one-quarter-tablet" ]
-                [ wordSearchItem
-                    "/images/brands/google-news.png"
-                    ("https://news.google.com/search?q=" ++ word)
-                    "Google ニュース"
-                ]
-            , div
-                [ class "column is-half-mobile is-one-quarter-tablet" ]
-                [ wordSearchItem
-                    "/images/brands/wikipedia.png"
-                    ("https://ja.wikipedia.org/wiki/" ++ word)
-                    "Wikipedia"
-                ]
-            , div
-                [ class "column is-half-mobile is-one-quarter-tablet" ]
-                [ wordSearchItem
-                    "/images/brands/uncyclopedia.ico"
-                    ("http://ja.uncyclopedia.info/wiki/" ++ word)
-                    "アンサイクロペディア"
-                ]
-            , div
-                [ class "column is-half-mobile is-one-quarter-tablet" ]
-                [ wordSearchItem
-                    "/images/brands/youtube.png"
-                    ("https://www.youtube.com/results?search_query=" ++ word)
-                    "YouTube"
-                ]
-            , div
-                [ class "column is-half-mobile is-one-quarter-tablet" ]
-                [ wordSearchItem
-                    "/images/brands/twitter.ico"
-                    ("https://twitter.com/search?q=" ++ word)
-                    "Twitter"
-                ]
-            , div
-                [ class "column is-half-mobile is-one-quarter-tablet" ]
-                [ wordSearchItem
-                    "/images/brands/instagram.ico"
-                    ("https://www.instagram.com/explore/tags/" ++ word)
-                    "Instagram"
+                [ div
+                    [ class "column is-half-mobile is-one-quarter-tablet" ]
+                    [ wordSearchItem
+                        "/images/brands/google.png"
+                        ("https://www.google.com/search?source=hp&q=" ++ word)
+                        "Google"
+                    ]
+                , div
+                    [ class "column is-half-mobile is-one-quarter-tablet" ]
+                    [ wordSearchItem
+                        "/images/brands/google.png"
+                        ("https://www.google.com/search?source=hp&tbm=isch&q=" ++ word)
+                        "Google 画像"
+                    ]
+                , div
+                    [ class "column is-half-mobile is-one-quarter-tablet" ]
+                    [ wordSearchItem
+                        "/images/brands/google-news.png"
+                        ("https://news.google.com/search?q=" ++ word)
+                        "Google ニュース"
+                    ]
+                , div
+                    [ class "column is-half-mobile is-one-quarter-tablet" ]
+                    [ wordSearchItem
+                        "/images/brands/wikipedia.png"
+                        ("https://ja.wikipedia.org/wiki/" ++ word)
+                        "Wikipedia"
+                    ]
+                , div
+                    [ class "column is-half-mobile is-one-quarter-tablet" ]
+                    [ wordSearchItem
+                        "/images/brands/uncyclopedia.ico"
+                        ("http://ja.uncyclopedia.info/wiki/" ++ word)
+                        "アンサイクロペディア"
+                    ]
+                , div
+                    [ class "column is-half-mobile is-one-quarter-tablet" ]
+                    [ wordSearchItem
+                        "/images/brands/youtube.png"
+                        ("https://www.youtube.com/results?search_query=" ++ word)
+                        "YouTube"
+                    ]
+                , div
+                    [ class "column is-half-mobile is-one-quarter-tablet" ]
+                    [ wordSearchItem
+                        "/images/brands/twitter.ico"
+                        ("https://twitter.com/search?q=" ++ word)
+                        "Twitter"
+                    ]
+                , div
+                    [ class "column is-half-mobile is-one-quarter-tablet" ]
+                    [ wordSearchItem
+                        "/images/brands/instagram.ico"
+                        ("https://www.instagram.com/explore/tags/" ++ word)
+                        "Instagram"
+                    ]
                 ]
             ]
         ]
@@ -596,7 +635,7 @@ untilLastChar initStr lastStr =
     ]
 
 
-nextHintPlaceholder : List Reply -> Attribute msg
+nextHintPlaceholder : List ReplyWithMaxHeight -> Attribute msg
 nextHintPlaceholder publicReplies =
     let
         maybeLastChar =
@@ -642,7 +681,8 @@ type Msg
       -- About event
     | InactivateDropdown
     | KeyDown Int
-    | ToggleDropdown Index
+    | FindSearchWordLineAndToggle Index
+    | ToggleSearchWordLine Index (Result Dom.Error Dom.Viewport)
       -- About LocalStorage
     | ReceiveFromLocalStorage ( String, D.Value )
     | SaveUser String
@@ -693,17 +733,37 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        ToggleDropdown index ->
-            case model.searchDropdownActiveIndex of
-                Just currentIndex ->
-                    if currentIndex == index then
-                        ( { model | searchDropdownActiveIndex = Nothing }, Cmd.none )
+        FindSearchWordLineAndToggle index ->
+            let
+                toggleSearchWordLine =
+                    Task.attempt
+                        (ToggleSearchWordLine index)
+                        (Dom.getViewportOf <| "shi-search-word-line-child" ++ String.fromInt index)
+            in
+            ( model, toggleSearchWordLine )
 
-                    else
-                        ( { model | searchDropdownActiveIndex = Just index }, Cmd.none )
+        ToggleSearchWordLine index viewportResult ->
+            let
+                updatePublicReplies maxHeight =
+                    model.publicReplies
+                        |> updateListOnly
+                            (\reply ->
+                                case reply.maxHeight of
+                                    Just _ ->
+                                        { reply | maxHeight = Nothing }
 
-                Nothing ->
-                    ( { model | searchDropdownActiveIndex = Just index }, Cmd.none )
+                                    Nothing ->
+                                        { reply | maxHeight = Just maxHeight }
+                            )
+                            index
+                        |> updateListExcept
+                            (\reply -> { reply | maxHeight = Nothing })
+                            index
+            in
+            viewportResult
+                |> Result.map (.scene >> .height)
+                |> Result.map (\maxHeight -> ( { model | publicReplies = updatePublicReplies maxHeight }, Cmd.none ))
+                |> Result.withDefault ( model, Cmd.none )
 
         ReceiveFromLocalStorage ( "user", value ) ->
             D.decodeValue (D.nullable D.string) value
@@ -757,6 +817,7 @@ update msg model =
 
         WebsocketReceive ( "room:lobby", "new_msg", payload ) ->
             D.decodeValue replyDecoder payload
+                |> Result.map (\reply -> replyWithMaxHeightConstructor reply Nothing)
                 |> Result.map (\reply -> reply :: model.publicReplies)
                 |> Result.map (List.take publicRepliesMaxLength)
                 |> Result.map
@@ -778,6 +839,7 @@ update msg model =
         WebsocketReceive ( "room:lobby", "public_replies", payload ) ->
             D.decodeValue repliesDecoder payload
                 |> Result.map (List.take publicRepliesMaxLength)
+                |> Result.map (List.map (\reply -> replyWithMaxHeightConstructor reply Nothing))
                 |> Result.map
                     (\publicReplies ->
                         { model
@@ -816,6 +878,32 @@ updateHeight =
 calcHeight : Dom.Element -> Float
 calcHeight element =
     element.viewport.height - element.element.y - footerHeight
+
+
+updateListOnly : (a -> a) -> Index -> List a -> List a
+updateListOnly f index list =
+    let
+        updateOnly i el =
+            if i == index then
+                f el
+
+            else
+                el
+    in
+    List.indexedMap updateOnly list
+
+
+updateListExcept : (a -> a) -> Index -> List a -> List a
+updateListExcept f index list =
+    let
+        updateExcept i el =
+            if i /= index then
+                f el
+
+            else
+                el
+    in
+    List.indexedMap updateExcept list
 
 
 repliesDecoder : D.Decoder (List Reply)
