@@ -3,6 +3,7 @@ module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, v
 import Array
 import Browser
 import Browser.Dom as Dom
+import Browser.Events as BEvents
 import Component.HelpModal as HelpModal
 import Dict exposing (Dict)
 import Html exposing (..)
@@ -675,6 +676,7 @@ type Msg
       -- About Model
     | ClearUserValidity
     | ClearWordValidity
+    | GetElementAndUpdateHeight
     | UpdateHeight (Result Dom.Error Dom.Element)
     | UpdateUser String
     | UpdateWord String
@@ -706,6 +708,9 @@ update msg model =
 
         ClearWordValidity ->
             ( { model | wordValidity = Valid }, Cmd.none )
+
+        GetElementAndUpdateHeight ->
+            ( model, updateHeight )
 
         UpdateHeight result ->
             result
@@ -939,4 +944,5 @@ subscriptions =
     Sub.batch
         [ Websocket.websocketReceive WebsocketReceive
         , LocalStorage.storageGetItemResponse ReceiveFromLocalStorage
+        , BEvents.onResize (\_ _ -> GetElementAndUpdateHeight)
         ]
