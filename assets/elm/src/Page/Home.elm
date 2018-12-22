@@ -127,7 +127,7 @@ view model =
     { title = "しりとりし"
     , body =
         [ div
-            (homeOutsideAttr model.searchDropdownActiveIndex)
+            [ class "home-outside-container" ]
             [ div
                 [ class "home-inside-container" ]
                 [ nav
@@ -347,14 +347,6 @@ brandLogo =
     , width 125
     , height 32
     ]
-
-
-homeOutsideAttr : Maybe Index -> List (Attribute Msg)
-homeOutsideAttr searchDropdownActiveIndex =
-    searchDropdownActiveIndex
-        |> Maybe.map (always [ on "click" <| D.succeed InactivateDropdown ])
-        |> Maybe.withDefault []
-        |> (::) (class "home-outside-container")
 
 
 createHeightStr : Float -> String
