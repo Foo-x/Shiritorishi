@@ -1,4 +1,4 @@
-module Component.HelpModal exposing (Model(..), Msg(..), modalClass, update, view)
+module Component.HelpModal exposing (Model, Msg(..), init, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -12,6 +12,11 @@ import Html.Events exposing (onClick)
 type Model
     = Active
     | Inactive
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( Inactive, Cmd.none )
 
 
 

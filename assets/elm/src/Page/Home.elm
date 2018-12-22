@@ -4,7 +4,7 @@ import Array
 import Browser
 import Browser.Dom as Dom
 import Browser.Events as BEvents
-import Component.HelpModal as HelpModal
+import Component.Header as Header
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -15,10 +15,7 @@ import Json.Encode as E
 import Maybe.Ext as MaybeExt
 import Ports.LocalStorage as LocalStorage
 import Ports.Websocket as Websocket
-import Process
-import Regex exposing (Regex)
 import Reply exposing (Reply, replyDecoder, replyEncoder)
-import Set exposing (Set)
 import Store.Session exposing (Session)
 import Task
 
@@ -37,7 +34,7 @@ type alias Model =
     , userValidity : Validity
     , wordValidity : Validity
     , invalidMessage : String
-    , helpModalModel : HelpModal.Model
+    , headerModel : Header.Model
     , searchDropdownActiveIndex : Maybe Index
     }
 
@@ -71,6 +68,10 @@ type alias Index =
 
 init : Session -> ( Model, Cmd Msg )
 init session =
+    let
+        ( headerModel, headerCmd ) =
+            Header.init
+    in
     ( { session = session
 
       -- 各項目がガクガクしないようにする
@@ -82,11 +83,12 @@ init session =
       , userValidity = Valid
       , wordValidity = Valid
       , invalidMessage = ""
-      , helpModalModel = HelpModal.Inactive
+      , headerModel = headerModel
       , searchDropdownActiveIndex = Nothing
       }
     , Cmd.batch
-        [ Websocket.websocketListen ( "room:lobby", "public_replies" )
+        [ Cmd.map HeaderMsg headerCmd
+        , Websocket.websocketListen ( "room:lobby", "public_replies" )
         , Websocket.websocketListen ( "room:lobby", "presence_diff" )
         , Task.perform identity (Task.succeed FetchPublicReplies)
         , Task.perform identity (Task.succeed <| SetStorageGetItem "user")
@@ -130,45 +132,7 @@ view model =
             [ class "home-outside-container" ]
             [ div
                 [ class "home-inside-container" ]
-                [ nav
-                    [ class "navbar shi-navbar"
-                    , attribute "role" "navigation"
-                    , attribute "aria-label" "main navigation"
-                    ]
-                    [ div
-                        [ class "navbar-brand" ]
-                        [ a
-                            [ class "navbar-item"
-                            , href "/"
-                            ]
-                            [ img
-                                brandLogo
-                                []
-                            ]
-                        ]
-                    , div
-                        [ id "shi-navbar-menu"
-                        , class "navbar-menu is-active"
-                        ]
-                        [ div
-                            [ class "navbar-end" ]
-                            [ div
-                                [ class "navbar-item" ]
-                                [ button
-                                    [ class "button transparent"
-                                    , onClick (HelpModalMsg HelpModal.Activate)
-                                    ]
-                                    [ span
-                                        [ class "icon has-text-grey-light" ]
-                                        [ i
-                                            [ class "fas fa-info-circle" ]
-                                            []
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
+                [ Lazy.lazy headerView model.headerModel
                 , div
                     [ class "columns home-body" ]
                     [ div
@@ -332,7 +296,6 @@ view model =
                                     ]
                                 ]
                             ]
-                        , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
                         ]
                     ]
                 ]
@@ -341,12 +304,9 @@ view model =
     }
 
 
-brandLogo : List (Attribute msg)
-brandLogo =
-    [ src "/images/brand-logo.png"
-    , width 125
-    , height 32
-    ]
+headerView : Header.Model -> Html Msg
+headerView headerModel =
+    Html.map HeaderMsg <| Header.view headerModel
 
 
 createHeightStr : Float -> String
@@ -725,7 +685,7 @@ type Msg
     | SendReply String String
     | WebsocketReceive ( String, String, D.Value )
       -- About imported msg
-    | HelpModalMsg HelpModal.Msg
+    | HeaderMsg Header.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -898,12 +858,12 @@ update msg model =
         WebsocketReceive ( _, _, _ ) ->
             ( model, Cmd.none )
 
-        HelpModalMsg subMsg ->
+        HeaderMsg subMsg ->
             let
                 ( subModel, subCmd ) =
-                    HelpModal.update subMsg model.helpModalModel
+                    Header.update subMsg model.headerModel
             in
-            ( { model | helpModalModel = subModel }, Cmd.map HelpModalMsg subCmd )
+            ( { model | headerModel = subModel }, Cmd.map HeaderMsg subCmd )
 
 
 updateHeight : Cmd Msg
