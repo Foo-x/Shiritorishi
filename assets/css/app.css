@@ -10,13 +10,24 @@
 #shi-sidebar {
   flex: none;
   width: 50px;
-  padding: 0;
-  background-color: #333333;
+  padding: .75rem 0;
+  background-color: #292929;
+}
+
+#shi-sidebar .menu-list li:hover {
+  filter: brightness(125%);
 }
 
 #shi-sidebar .menu-list a:hover {
   background-color: initial;
-  filter: brightness(125%);
+}
+
+#shi-sidebar .menu-list li.is-active-page {
+  box-shadow: inset 4px 0 0 -2px #bf9c63;
+}
+
+#shi-sidebar .menu-list li.is-active-page .icon {
+  color: #bf9c63 !important;
 }
 
 #shi-main {

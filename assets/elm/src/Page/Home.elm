@@ -161,7 +161,7 @@ view model =
                                     [ span
                                         [ class "icon has-text-grey-light" ]
                                         [ i
-                                            [ class "fas fa-question-circle" ]
+                                            [ class "fas fa-info-circle" ]
                                             []
                                         ]
                                     ]
@@ -178,13 +178,26 @@ view model =
                         [ ul
                             [ class "menu-list" ]
                             [ li
+                                -- TODO: URLに応じたis-active-pageをつける
+                                [ class "is-active-page" ]
+                                [ a
+                                    [ href "/" ]
+                                    [ span
+                                        [ class "icon has-text-grey-light" ]
+                                        [ i
+                                            [ class "fas fa-home" ]
+                                            []
+                                        ]
+                                    ]
+                                ]
+                            , li
                                 []
                                 [ a
                                     []
                                     [ span
                                         [ class "icon has-text-grey-light" ]
                                         [ i
-                                            [ class "fas fa-home" ]
+                                            [ class "fas fa-paint-brush" ]
                                             []
                                         ]
                                     ]
