@@ -169,133 +169,159 @@ view model =
                             ]
                         ]
                     ]
-                , section
-                    [ id "shi-main"
-                    , class "section"
-                    ]
+                , div
+                    [ class "columns home-body" ]
                     [ div
-                        [ class "container" ]
-                        [ div
-                            [ class "is-size-2 has-text-centered has-text-weight-bold" ]
-                            [ p
-                                [ class "break-word" ]
-                                [ Lazy.lazy latestWord model.publicReplies ]
-                            ]
-                        , div
-                            [ class "is-divider" ]
-                            []
-                        , div
-                            [ id "shi-replies-box"
-                            , class "columns is-mobile"
-                            ]
-                            [ div
-                                [ class "column is-offset-1" ]
-                                [ div
-                                    [ class "columns is-mobile" ]
-                                    [ div
-                                        [ id "shi-replies"
-                                        , class "column is-11"
-                                        , style "max-height" (createHeightStr model.height)
-                                        ]
-                                        [ table
-                                            [ class "table is-fullwidth" ]
-                                            [ Lazy.lazy2 allReplies model.publicReplies model.searchDropdownActiveIndex ]
+                        [ id "shi-sidebar"
+                        , class "column menu has-text-grey-light"
+                        ]
+                        [ ul
+                            [ class "menu-list" ]
+                            [ li
+                                []
+                                [ a
+                                    []
+                                    [ span
+                                        [ class "icon has-text-grey-light" ]
+                                        [ i
+                                            [ class "fas fa-home" ]
+                                            []
                                         ]
                                     ]
                                 ]
                             ]
                         ]
-                    ]
-                , footer
-                    [ id "shi-footer"
-                    , class "footer"
-                    ]
-                    [ div
-                        [ class "columns is-mobile" ]
-                        [ div
-                            [ class "column is-offset-1" ]
+                    , div
+                        [ class "column content" ]
+                        [ section
+                            [ id "shi-main"
+                            , class "section"
+                            ]
                             [ div
-                                [ class "content" ]
+                                [ class "container" ]
                                 [ div
-                                    [ id "shi-name"
-                                    , class "columns is-mobile"
-                                    ]
-                                    [ div
-                                        [ id "shi-name-field"
-                                        , class "column is-5 field"
-                                        ]
-                                        [ label
-                                            [ class "label is-small" ]
-                                            [ text "名前" ]
-                                        , div
-                                            [ class "control" ]
-                                            [ input
-                                                [ classFromValidity model.userValidity "input is-small"
-                                                , type_ "text"
-                                                , placeholder defaultUser
-                                                , onInput UpdateUser
-                                                , value model.user
-                                                ]
-                                                []
-                                            ]
-                                        ]
-                                    , div
-                                        [ class "column is-2 is-offset-4 relative" ]
-                                        [ div
-                                            [ id "shi-user-counts"
-                                            , class "is-size-7 has-text-grey"
-                                            ]
-                                            [ span
-                                                [ class "icon is-small" ]
-                                                [ i
-                                                    [ class "fas fa-user" ]
-                                                    []
-                                                ]
-                                            , text <| String.fromInt model.userCount
-                                            ]
-                                        ]
-                                    ]
-                                , div
-                                    [ id "shi-word"
-                                    , class "columns is-mobile"
-                                    ]
-                                    [ div
-                                        [ class "column is-11 field has-addons" ]
-                                        [ div
-                                            [ class "control is-expanded" ]
-                                            [ input
-                                                [ classFromValidity model.wordValidity "input"
-                                                , type_ "text"
-                                                , nextHintPlaceholder model.publicReplies
-                                                , onInput UpdateWord
-                                                , onKeyDown KeyDown
-                                                , value model.word
-                                                ]
-                                                []
-                                            ]
-                                        , div
-                                            [ class "control" ]
-                                            [ button
-                                                [ class "button shi-primary has-text-white has-text-weight-semibold"
-                                                , onClick (SendReply model.user model.word)
-                                                ]
-                                                [ text "送信" ]
-                                            ]
-                                        ]
-                                    ]
-                                , div
-                                    [ id "shi-invalid-message"
-                                    , class "columns is-mobile"
-                                    ]
+                                    [ class "is-size-2 has-text-centered has-text-weight-bold" ]
                                     [ p
-                                        [ class "column help is-danger" ]
-                                        [ text model.invalidMessage ]
+                                        [ class "break-word" ]
+                                        [ Lazy.lazy latestWord model.publicReplies ]
+                                    ]
+                                , div
+                                    [ class "is-divider" ]
+                                    []
+                                , div
+                                    [ id "shi-replies-box"
+                                    , class "columns is-mobile"
+                                    ]
+                                    [ div
+                                        [ class "column is-offset-1" ]
+                                        [ div
+                                            [ class "columns is-mobile" ]
+                                            [ div
+                                                [ id "shi-replies"
+                                                , class "column is-11"
+                                                , style "max-height" (createHeightStr model.height)
+                                                ]
+                                                [ table
+                                                    [ class "table is-fullwidth" ]
+                                                    [ Lazy.lazy2 allReplies model.publicReplies model.searchDropdownActiveIndex ]
+                                                ]
+                                            ]
+                                        ]
                                     ]
                                 ]
                             ]
+                        , footer
+                            [ id "shi-footer"
+                            , class "footer"
+                            ]
+                            [ div
+                                [ class "columns is-mobile" ]
+                                [ div
+                                    [ class "column is-offset-1" ]
+                                    [ div
+                                        [ class "content" ]
+                                        [ div
+                                            [ id "shi-name"
+                                            , class "columns is-mobile"
+                                            ]
+                                            [ div
+                                                [ id "shi-name-field"
+                                                , class "column is-5 field"
+                                                ]
+                                                [ label
+                                                    [ class "label is-small" ]
+                                                    [ text "名前" ]
+                                                , div
+                                                    [ class "control" ]
+                                                    [ input
+                                                        [ classFromValidity model.userValidity "input is-small"
+                                                        , type_ "text"
+                                                        , placeholder defaultUser
+                                                        , onInput UpdateUser
+                                                        , value model.user
+                                                        ]
+                                                        []
+                                                    ]
+                                                ]
+                                            , div
+                                                [ class "column is-2 is-offset-4 relative" ]
+                                                [ div
+                                                    [ id "shi-user-counts"
+                                                    , class "is-size-7 has-text-grey"
+                                                    ]
+                                                    [ span
+                                                        [ class "icon is-small" ]
+                                                        [ i
+                                                            [ class "fas fa-user" ]
+                                                            []
+                                                        ]
+                                                    , text <| String.fromInt model.userCount
+                                                    ]
+                                                ]
+                                            ]
+                                        , div
+                                            [ id "shi-word"
+                                            , class "columns is-mobile"
+                                            ]
+                                            [ div
+                                                [ class "column is-11 field has-addons" ]
+                                                [ div
+                                                    [ class "control is-expanded" ]
+                                                    [ input
+                                                        [ classFromValidity model.wordValidity "input"
+                                                        , type_ "text"
+                                                        , nextHintPlaceholder model.publicReplies
+                                                        , onInput UpdateWord
+                                                        , onKeyDown KeyDown
+                                                        , value model.word
+                                                        ]
+                                                        []
+                                                    ]
+                                                , div
+                                                    [ class "control" ]
+                                                    [ button
+                                                        [ class "button shi-primary has-text-white has-text-weight-semibold"
+                                                        , onClick (SendReply model.user model.word)
+                                                        ]
+                                                        [ text "送信" ]
+                                                    ]
+                                                ]
+                                            ]
+                                        , div
+                                            [ id "shi-invalid-message"
+                                            , class "columns is-mobile"
+                                            ]
+                                            [ p
+                                                [ class "column help is-danger" ]
+                                                [ text model.invalidMessage ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
                         ]
                     ]
-                , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
                 ]
             ]
         ]
