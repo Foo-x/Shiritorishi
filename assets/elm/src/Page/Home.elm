@@ -36,6 +36,7 @@ type alias Model =
     , invalidMessage : String
     , headerModel : Header.Model
     , searchDropdownActiveIndex : Maybe Index
+    , isSidebarOpen : Bool
     }
 
 
@@ -85,6 +86,7 @@ init session =
       , invalidMessage = ""
       , headerModel = headerModel
       , searchDropdownActiveIndex = Nothing
+      , isSidebarOpen = False
       }
     , Cmd.batch
         [ Cmd.map HeaderMsg headerCmd
@@ -137,7 +139,7 @@ view model =
                     [ class "columns home-body" ]
                     [ div
                         [ id "shi-sidebar"
-                        , class "column menu has-text-grey-light"
+                        , sidebarClass model.isSidebarOpen
                         ]
                         [ ul
                             [ class "menu-list" ]
@@ -152,6 +154,9 @@ view model =
                                             [ class "fas fa-home" ]
                                             []
                                         ]
+                                    , span
+                                        [ class "sidebar-item-name has-text-grey-light" ]
+                                        [ text "ノーマルしりとり" ]
                                     ]
                                 ]
                             , li
@@ -164,9 +169,13 @@ view model =
                                             [ class "fas fa-paint-brush" ]
                                             []
                                         ]
+                                    , span
+                                        [ class "sidebar-item-name has-text-grey-light" ]
+                                        [ text "お絵描きしりとり" ]
                                     ]
                                 ]
                             ]
+                        , Lazy.lazy toggleSidebarButtonView model.isSidebarOpen
                         ]
                     , div
                         [ class "column content" ]
@@ -307,6 +316,55 @@ view model =
 headerView : Header.Model -> Html Msg
 headerView headerModel =
     Html.map HeaderMsg <| Header.view headerModel
+
+
+sidebarClass : Bool -> Attribute msg
+sidebarClass isSidebarOpen =
+    let
+        defaultClass =
+            "column menu"
+    in
+    if isSidebarOpen then
+        class <| defaultClass ++ " is-open"
+
+    else
+        class <| defaultClass
+
+
+toggleSidebarButtonView : Bool -> Html Msg
+toggleSidebarButtonView isSidebarOpen =
+    button
+        [ id "shi-toggle-sidebar-button"
+        , class "button"
+        , onClick ToggleSidebar
+        ]
+        -- 動的にiconを作るとランタイムエラーが発生するので、両方用意してdisplayをtoggleする
+        [ span
+            [ toggleSidebarButtonIconClass <| not isSidebarOpen ]
+            [ i
+                [ class "fas fa-lg fa-angle-double-right" ]
+                []
+            ]
+        , span
+            [ toggleSidebarButtonIconClass <| isSidebarOpen ]
+            [ i
+                [ class "fas fa-lg fa-angle-double-left" ]
+                []
+            ]
+        ]
+
+
+toggleSidebarButtonIconClass : Bool -> Attribute Msg
+toggleSidebarButtonIconClass visible =
+    let
+        defaultClass =
+            "icon is-medium has-text-grey-light"
+    in
+    if visible then
+        class <| defaultClass
+
+    else
+        class <| defaultClass ++ " display-none"
 
 
 createHeightStr : Float -> String
@@ -676,6 +734,7 @@ type Msg
     | KeyDown Int
     | FindSearchWordLineAndToggle Index
     | ToggleSearchWordLine Index (Result Dom.Error Dom.Viewport)
+    | ToggleSidebar
       -- About LocalStorage
     | ReceiveFromLocalStorage ( String, D.Value )
     | SaveUser String
@@ -760,6 +819,9 @@ update msg model =
                 |> Result.map (.scene >> .height)
                 |> Result.map (\maxHeight -> ( { model | publicReplies = updatePublicReplies maxHeight }, Cmd.none ))
                 |> Result.withDefault ( model, Cmd.none )
+
+        ToggleSidebar ->
+            ( { model | isSidebarOpen = not model.isSidebarOpen }, Cmd.none )
 
         ReceiveFromLocalStorage ( "user", value ) ->
             D.decodeValue (D.nullable D.string) value

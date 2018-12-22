@@ -9,9 +9,17 @@
 
 #shi-sidebar {
   flex: none;
+  overflow: hidden;
   width: 50px;
   padding: .75rem 0;
   background-color: #292929;
+  white-space: nowrap;
+  transition: width .3s;
+}
+
+#shi-sidebar.is-open {
+  width: 200px;
+  transition: width .3s;
 }
 
 #shi-sidebar .menu-list li:hover {
@@ -26,8 +34,31 @@
   box-shadow: inset 4px 0 0 -2px #bf9c63;
 }
 
-#shi-sidebar .menu-list li.is-active-page .icon {
+#shi-sidebar .menu-list li.is-active-page .icon,
+#shi-sidebar .menu-list li.is-active-page .sidebar-item-name {
   color: #bf9c63 !important;
+}
+
+#shi-toggle-sidebar-button {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  bottom: 0;
+  padding: 0 .75em;
+  border: none;
+  border-top: 1px solid #444444;
+  background-color: #292929;
+  box-shadow: none;
+  transition: width .3s;
+}
+
+#shi-sidebar.is-open #shi-toggle-sidebar-button {
+  width: 200px;
+  transition: width .3s;
+}
+
+#shi-toggle-sidebar-button .icon {
+  margin: 0;
 }
 
 #shi-main {
@@ -178,6 +209,21 @@ html, body, .home-outside-container, .home-inside-container, .home-inside-contai
 
 .relative {
   position: relative;
+}
+
+.display-none {
+  display: none;
+}
+
+.sidebar-item-name {
+  visibility: hidden;
+  padding-left: .25rem;
+  transition: visibility 0.1s step-start;
+}
+
+#shi-sidebar.is-open .sidebar-item-name {
+  visibility: initial;
+  transition: visibility 0.1s step-end;
 }
 
 .shi-search-word-line > div {
