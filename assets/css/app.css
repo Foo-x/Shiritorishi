@@ -22,7 +22,7 @@
 }
 
 #shi-sidebar.is-open {
-  width: 200px;
+  width: 120px;
   transition: width .3s;
 }
 
@@ -60,7 +60,7 @@
 }
 
 #shi-sidebar.is-open #shi-toggle-sidebar-button {
-  width: 200px;
+  width: 120px;
   transition: width .3s;
 }
 

@@ -162,7 +162,7 @@ view model =
                                     ]
                                 , span
                                     [ class "sidebar-item-name has-text-grey-light" ]
-                                    [ text "ノーマルしりとり" ]
+                                    [ text "ノーマル" ]
                                 ]
                             ]
                         , li
@@ -177,7 +177,7 @@ view model =
                                     ]
                                 , span
                                     [ class "sidebar-item-name has-text-grey-light" ]
-                                    [ text "お絵描きしりとり" ]
+                                    [ text "お絵描き" ]
                                 ]
                             ]
                         , div
