@@ -60,15 +60,12 @@ view model =
             [ div
                 [ class "navbar-start" ]
                 [ div
-                    [ class "navbar-item is-tab is-active" ]
+                    [ class "navbar-item is-tab is-active is-active-page" ]
                     [ a
                         [ href "/"
                         , class "button transparent"
                         ]
-                        [ span
-                            [ class "icon has-text-navbar" ]
-                            [ iconWithText "fa-home" "ノーマル" ]
-                        ]
+                        [ iconWithText "fa-home" "ノーマル" ]
                     ]
                 , div
                     [ class "navbar-item is-tab" ]
@@ -76,10 +73,7 @@ view model =
                         [ href "/"
                         , class "button transparent"
                         ]
-                        [ span
-                            [ class "icon has-text-navbar" ]
-                            [ iconWithText "fa-paint-brush" "お絵描き" ]
-                        ]
+                        [ iconWithText "fa-paint-brush" "お絵描き" ]
                     ]
                 ]
             , div

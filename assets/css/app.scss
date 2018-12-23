@@ -106,9 +106,27 @@ html, body, .home-container, .home-container > .home-body {
 .has-text-navbar {
   color: $grey-light;
 
-  .is-active & {
+  .is-active-page & {
     color: $navbar-active-color;
   }
+}
+
+.navbar.shi-navbar {
+  background-color: #333333;
+  color: #f5f5f5;
+}
+
+.navbar-dropdown-icon {
+  justify-content: initial;
+  width: initial;
+}
+
+.navbar-dropdown-itemname {
+  padding-left: .25rem;
+}
+
+.navbar-icon-text {
+  font-size: 10px;
 }
 
 .home-container {
@@ -132,11 +150,6 @@ html, body, .home-container, .home-container > .home-body {
 
 .home-container > .home-body > .content > * {
   -webkit-tap-highlight-color: initial;
-}
-
-.navbar.shi-navbar {
-  background-color: #333333;
-  color: #f5f5f5;
 }
 
 .shi-primary {
@@ -191,19 +204,6 @@ html, body, .home-container, .home-container > .home-body {
 .shi-search-word-line > div {
   padding-left: 0;
   padding-right: 0;
-}
-
-.navbar-dropdown-icon {
-  justify-content: initial;
-  width: initial;
-}
-
-.navbar-dropdown-itemname {
-  padding-left: .25rem;
-}
-
-.navbar-icon-text {
-  font-size: 10px;
 }
 
 @media screen and (min-width: 769px), print {
