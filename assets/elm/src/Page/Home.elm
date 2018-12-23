@@ -138,197 +138,196 @@ view model =
     { title = "しりとりし"
     , body =
         [ div
-            [ class "home-outside-container" ]
-            [ div
-                [ class "home-inside-container" ]
-                [ Lazy.lazy headerView model.headerModel
-                , div
-                    [ class "columns home-body" ]
-                    [ div
-                        [ id "shi-sidebar"
-                        , sidebarClass model.isSidebarOpen
-                        ]
-                        [ ul
-                            [ class "menu-list" ]
-                            [ li
-                                -- TODO: URLに応じたis-active-pageをつける
-                                [ class "is-active-page" ]
-                                [ a
-                                    [ href "/" ]
-                                    [ span
-                                        [ class "icon has-text-grey-light" ]
-                                        [ i
-                                            [ class "fas fa-home" ]
-                                            []
-                                        ]
-                                    , span
-                                        [ class "sidebar-item-name has-text-grey-light" ]
-                                        [ text "ノーマルしりとり" ]
+            [ class "home-container" ]
+            [ Lazy.lazy headerView model.headerModel
+            , div
+                [ class "columns home-body" ]
+                [ div
+                    [ id "shi-sidebar"
+                    , sidebarClass model.isSidebarOpen
+                    ]
+                    [ ul
+                        [ class "menu-list" ]
+                        [ li
+                            -- TODO: URLに応じたis-active-pageをつける
+                            [ class "is-active-page" ]
+                            [ a
+                                [ href "/" ]
+                                [ span
+                                    [ class "icon has-text-grey-light" ]
+                                    [ i
+                                        [ class "fas fa-home" ]
+                                        []
                                     ]
+                                , span
+                                    [ class "sidebar-item-name has-text-grey-light" ]
+                                    [ text "ノーマルしりとり" ]
                                 ]
-                            , li
+                            ]
+                        , li
+                            []
+                            [ a
                                 []
-                                [ a
-                                    []
-                                    [ span
-                                        [ class "icon has-text-grey-light" ]
-                                        [ i
-                                            [ class "fas fa-paint-brush" ]
-                                            []
-                                        ]
-                                    , span
-                                        [ class "sidebar-item-name has-text-grey-light" ]
-                                        [ text "お絵描きしりとり" ]
+                                [ span
+                                    [ class "icon has-text-grey-light" ]
+                                    [ i
+                                        [ class "fas fa-paint-brush" ]
+                                        []
                                     ]
+                                , span
+                                    [ class "sidebar-item-name has-text-grey-light" ]
+                                    [ text "お絵描きしりとり" ]
+                                ]
+                            ]
+                        , div
+                            [ class "is-divider" ]
+                            []
+                        , li
+                            []
+                            [ button
+                                [ class "button transparent"
+                                , onClick (HelpModalMsg HelpModal.Activate)
+                                ]
+                                [ span
+                                    [ class "icon has-text-grey-light" ]
+                                    [ i
+                                        [ class "fas fa-info-circle" ]
+                                        []
+                                    ]
+                                , span
+                                    [ class "sidebar-item-name has-text-grey-light" ]
+                                    [ text "ルール" ]
+                                ]
+                            ]
+                        ]
+                    , Lazy.lazy toggleSidebarButtonView model.isSidebarOpen
+                    , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
+                    ]
+                , div
+                    [ class "column content"
+                    , onClick CloseSidebar
+                    ]
+                    [ section
+                        [ id "shi-main"
+                        , class "section"
+                        ]
+                        [ div
+                            [ class "container" ]
+                            [ div
+                                [ class "is-size-2 has-text-centered has-text-weight-bold" ]
+                                [ p
+                                    [ class "break-word" ]
+                                    [ Lazy.lazy latestWord model.publicReplies ]
                                 ]
                             , div
                                 [ class "is-divider" ]
                                 []
-                            , li
-                                []
-                                [ button
-                                    [ class "button transparent"
-                                    , onClick (HelpModalMsg HelpModal.Activate)
-                                    ]
-                                    [ span
-                                        [ class "icon has-text-grey-light" ]
-                                        [ i
-                                            [ class "fas fa-info-circle" ]
-                                            []
-                                        ]
-                                    , span
-                                        [ class "sidebar-item-name has-text-grey-light" ]
-                                        [ text "ルール" ]
-                                    ]
-                            ]
-                            ]
-                        , Lazy.lazy toggleSidebarButtonView model.isSidebarOpen
-                        , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
-                        ]
-                    , div
-                        [ class "column content" ]
-                        [ section
-                            [ id "shi-main"
-                            , class "section"
-                            ]
-                            [ div
-                                [ class "container" ]
+                            , div
+                                [ id "shi-replies-box"
+                                , class "columns is-mobile"
+                                ]
                                 [ div
-                                    [ class "is-size-2 has-text-centered has-text-weight-bold" ]
-                                    [ p
-                                        [ class "break-word" ]
-                                        [ Lazy.lazy latestWord model.publicReplies ]
-                                    ]
-                                , div
-                                    [ class "is-divider" ]
-                                    []
-                                , div
-                                    [ id "shi-replies-box"
-                                    , class "columns is-mobile"
-                                    ]
+                                    [ class "column is-offset-1" ]
                                     [ div
-                                        [ class "column is-offset-1" ]
+                                        [ class "columns is-mobile" ]
                                         [ div
-                                            [ class "columns is-mobile" ]
-                                            [ div
-                                                [ id "shi-replies"
-                                                , class "column is-11"
-                                                , style "max-height" (createHeightStr model.height)
-                                                ]
-                                                [ table
-                                                    [ class "table is-fullwidth" ]
-                                                    [ Lazy.lazy2 allReplies model.publicReplies model.searchDropdownActiveIndex ]
-                                                ]
+                                            [ id "shi-replies"
+                                            , class "column is-11"
+                                            , style "max-height" (createHeightStr model.height)
+                                            ]
+                                            [ table
+                                                [ class "table is-fullwidth" ]
+                                                [ Lazy.lazy2 allReplies model.publicReplies model.searchDropdownActiveIndex ]
                                             ]
                                         ]
                                     ]
                                 ]
                             ]
-                        , footer
-                            [ id "shi-footer"
-                            , class "footer"
-                            ]
+                        ]
+                    , footer
+                        [ id "shi-footer"
+                        , class "footer"
+                        ]
+                        [ div
+                            [ class "columns is-mobile" ]
                             [ div
-                                [ class "columns is-mobile" ]
+                                [ class "column is-offset-1" ]
                                 [ div
-                                    [ class "column is-offset-1" ]
+                                    [ class "content" ]
                                     [ div
-                                        [ class "content" ]
+                                        [ id "shi-name"
+                                        , class "columns is-mobile"
+                                        ]
                                         [ div
-                                            [ id "shi-name"
-                                            , class "columns is-mobile"
+                                            [ id "shi-name-field"
+                                            , class "column is-5 field"
                                             ]
-                                            [ div
-                                                [ id "shi-name-field"
-                                                , class "column is-5 field"
+                                            [ label
+                                                [ class "label is-small" ]
+                                                [ text "名前" ]
+                                            , div
+                                                [ class "control" ]
+                                                [ input
+                                                    [ classFromValidity model.userValidity "input is-small"
+                                                    , type_ "text"
+                                                    , placeholder defaultUser
+                                                    , onInput UpdateUser
+                                                    , value model.user
+                                                    ]
+                                                    []
                                                 ]
-                                                [ label
-                                                    [ class "label is-small" ]
-                                                    [ text "名前" ]
-                                                , div
-                                                    [ class "control" ]
-                                                    [ input
-                                                        [ classFromValidity model.userValidity "input is-small"
-                                                        , type_ "text"
-                                                        , placeholder defaultUser
-                                                        , onInput UpdateUser
-                                                        , value model.user
-                                                        ]
+                                            ]
+                                        , div
+                                            [ class "column is-2 is-offset-4 relative" ]
+                                            [ div
+                                                [ id "shi-user-counts"
+                                                , class "is-size-7 has-text-grey"
+                                                ]
+                                                [ span
+                                                    [ class "icon is-small" ]
+                                                    [ i
+                                                        [ class "fas fa-user" ]
                                                         []
                                                     ]
+                                                , text <| String.fromInt model.userCount
+                                                ]
+                                            ]
+                                        ]
+                                    , div
+                                        [ id "shi-word"
+                                        , class "columns is-mobile"
+                                        ]
+                                        [ div
+                                            [ class "column is-11 field has-addons" ]
+                                            [ div
+                                                [ class "control is-expanded" ]
+                                                [ input
+                                                    [ classFromValidity model.wordValidity "input"
+                                                    , type_ "text"
+                                                    , nextHintPlaceholder model.publicReplies
+                                                    , onInput UpdateWord
+                                                    , onKeyDown KeyDown
+                                                    , value model.word
+                                                    ]
+                                                    []
                                                 ]
                                             , div
-                                                [ class "column is-2 is-offset-4 relative" ]
-                                                [ div
-                                                    [ id "shi-user-counts"
-                                                    , class "is-size-7 has-text-grey"
+                                                [ class "control" ]
+                                                [ button
+                                                    [ class "button shi-primary has-text-white has-text-weight-semibold"
+                                                    , onClick (SendReply model.user model.word)
                                                     ]
-                                                    [ span
-                                                        [ class "icon is-small" ]
-                                                        [ i
-                                                            [ class "fas fa-user" ]
-                                                            []
-                                                        ]
-                                                    , text <| String.fromInt model.userCount
-                                                    ]
+                                                    [ text "送信" ]
                                                 ]
                                             ]
-                                        , div
-                                            [ id "shi-word"
-                                            , class "columns is-mobile"
-                                            ]
-                                            [ div
-                                                [ class "column is-11 field has-addons" ]
-                                                [ div
-                                                    [ class "control is-expanded" ]
-                                                    [ input
-                                                        [ classFromValidity model.wordValidity "input"
-                                                        , type_ "text"
-                                                        , nextHintPlaceholder model.publicReplies
-                                                        , onInput UpdateWord
-                                                        , onKeyDown KeyDown
-                                                        , value model.word
-                                                        ]
-                                                        []
-                                                    ]
-                                                , div
-                                                    [ class "control" ]
-                                                    [ button
-                                                        [ class "button shi-primary has-text-white has-text-weight-semibold"
-                                                        , onClick (SendReply model.user model.word)
-                                                        ]
-                                                        [ text "送信" ]
-                                                    ]
-                                                ]
-                                            ]
-                                        , div
-                                            [ id "shi-invalid-message"
-                                            , class "columns is-mobile"
-                                            ]
-                                            [ p
-                                                [ class "column help is-danger" ]
-                                                [ text model.invalidMessage ]
-                                            ]
+                                        ]
+                                    , div
+                                        [ id "shi-invalid-message"
+                                        , class "columns is-mobile"
+                                        ]
+                                        [ p
+                                            [ class "column help is-danger" ]
+                                            [ text model.invalidMessage ]
                                         ]
                                     ]
                                 ]
@@ -517,7 +516,7 @@ dropdownTriggerDict =
                         [ class "button transparent"
                         , attribute "aria-haspopup" "true"
                         , attribute "aria-controls" "dropdown-menu"
-                        , stopPropagationOn "click" <| D.succeed ( FindSearchWordLineAndToggle index, True )
+                        , onClick <| FindSearchWordLineAndToggle index
                         ]
                         [ span
                             [ class "icon" ]
@@ -763,6 +762,7 @@ type Msg
     | FindSearchWordLineAndToggle Index
     | ToggleSearchWordLine Index (Result Dom.Error Dom.Viewport)
     | ToggleSidebar
+    | CloseSidebar
       -- About LocalStorage
     | ReceiveFromLocalStorage ( String, D.Value )
     | SaveUser String
@@ -851,6 +851,9 @@ update msg model =
 
         ToggleSidebar ->
             ( { model | isSidebarOpen = not model.isSidebarOpen }, Cmd.none )
+
+        CloseSidebar ->
+            ( { model | isSidebarOpen = False }, Cmd.none )
 
         ReceiveFromLocalStorage ( "user", value ) ->
             D.decodeValue (D.nullable D.string) value
