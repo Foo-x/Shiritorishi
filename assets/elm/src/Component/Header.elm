@@ -17,10 +17,18 @@ type alias Model =
 init : ( Model, Cmd Msg )
 init =
     let
-        ( helpModalModel, helpModalCmd) =
+        ( helpModalModel, helpModalCmd ) =
             HelpModal.init
     in
     ( helpModalModel, Cmd.map HelpModalMsg helpModalCmd )
+
+
+type alias IconName =
+    String
+
+
+type alias IconText =
+    String
 
 
 
@@ -47,21 +55,71 @@ view model =
             ]
         , div
             [ id "shi-navbar-menu"
-            , class "navbar-menu is-active"
+            , class "navbar-menu"
             ]
             [ div
-                [ class "navbar-end" ]
+                [ class "navbar-start" ]
                 [ div
-                    [ class "navbar-item" ]
-                    [ button
-                        [ class "button transparent"
-                        , onClick (HelpModalMsg HelpModal.Activate)
+                    [ class "navbar-item is-tab is-active" ]
+                    [ a
+                        [ href "/"
+                        , class "button transparent"
                         ]
                         [ span
-                            [ class "icon has-text-grey-light" ]
-                            [ i
-                                [ class "fas fa-info-circle" ]
-                                []
+                            [ class "icon has-text-navbar" ]
+                            [ iconWithText "fa-home" "ノーマル" ]
+                        ]
+                    ]
+                , div
+                    [ class "navbar-item is-tab" ]
+                    [ a
+                        [ href "/"
+                        , class "button transparent"
+                        ]
+                        [ span
+                            [ class "icon has-text-navbar" ]
+                            [ iconWithText "fa-paint-brush" "お絵描き" ]
+                        ]
+                    ]
+                ]
+            , div
+                [ class "navbar-end" ]
+                [ div
+                    [ class "navbar-item has-dropdown is-hoverable" ]
+                    [ button
+                        [ class "navbar-link button transparent is-arrowless"
+                        ]
+                        [ iconWithText "fa-ellipsis-v" "その他" ]
+                    , div
+                        [ class "navbar-dropdown is-right" ]
+                        [ a
+                            [ class "navbar-item" ]
+                            [ span
+                                [ class "icon has-text-navbar navbar-dropdown-icon" ]
+                                [ i
+                                    [ class "fas fa-question" ]
+                                    []
+                                , span
+                                    [ class "navbar-dropdown-itemname" ]
+                                    [ text "クイズ" ]
+                                ]
+                            ]
+                        , hr
+                            [ class "navbar-divider" ]
+                            []
+                        , button
+                            [ class "button transparent navbar-item"
+                            , onClick <| HelpModalMsg HelpModal.Activate
+                            ]
+                            [ span
+                                [ class "icon has-text-navbar navbar-dropdown-icon" ]
+                                [ i
+                                    [ class "fas fa-info-circle" ]
+                                    []
+                                , span
+                                    [ class "navbar-dropdown-itemname" ]
+                                    [ text "ルール" ]
+                                ]
                             ]
                         ]
                     ]
@@ -77,6 +135,26 @@ brandLogo =
     , width 125
     , height 32
     ]
+
+
+iconWithText : IconName -> IconText -> Html Msg
+iconWithText name iconText =
+    span
+        [ class "icon has-text-navbar" ]
+        [ span
+            [ class "fa-layers fa-fw" ]
+            [ i
+                [ class <| "fas " ++ name
+                , attribute "data-fa-transform" "up-7"
+                ]
+                []
+            , span
+                [ class "fa-layers-text navbar-icon-text"
+                , attribute "data-fa-transform" "down-17"
+                ]
+                [ text iconText ]
+            ]
+        ]
 
 
 

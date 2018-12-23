@@ -1,4 +1,15 @@
 @charset "utf-8";
+
+$navbar-active-color: #bf9c63;
+
+$navbar-breakpoint: 0;
+
+// Navbar
+$navbar-tab-hover-border-bottom-color: $navbar-active-color;
+$navbar-tab-active-color: $navbar-active-color;
+$navbar-tab-active-border-bottom-color: $navbar-active-color;
+$navbar-dropdown-item-active-color: $navbar-active-color;
+
 @import "~bulma/bulma";
 @import "~bulma-divider/dist/css/bulma-divider";
 @import "~bulma-modal-fx/dist/css/modal-fx";
@@ -154,6 +165,15 @@
 html, body, .home-container, .home-container > .home-body {
   height: 100%;
   margin: 0;
+  overflow: hidden;
+}
+
+.has-text-navbar {
+  color: $grey-light;
+
+  .is-active & {
+    color: $navbar-active-color;
+  }
 }
 
 .home-container {
@@ -205,7 +225,7 @@ html, body, .home-container, .home-container > .home-body {
 }
 
 .button.transparent {
-  background-color: transparent;
+  background-color: transparent !important;
   border-color: transparent;
 }
 
@@ -290,39 +310,59 @@ a.dropdown-item {
   text-align: center;
 }
 
+.navbar-link {
+  padding-bottom: calc(0.375em - 1px);
+  padding-left: 0.75em;
+  padding-right: 0.75em;
+  padding-top: calc(0.375em - 1px);
+}
+
+.navbar-item.has-dropdown {
+  padding: 0.5rem 0.75rem;
+}
+
+button.navbar-link:focus:not(:active) {
+  box-shadow: none;
+}
+
+.navbar-dropdown {
+  background-color: #333333;
+  border-top-color: #444444;
+}
+
+.navbar-dropdown-icon {
+  justify-content: initial;
+  width: initial;
+}
+
+.navbar-dropdown-itemname {
+  padding-left: .25rem;
+}
+
+.navbar-dropdown > a.navbar-item:hover {
+  background-color: initial;
+  filter: brightness(125%);
+}
+
+.navbar-dropdown > button {
+  font-size: .875rem;
+  width: 100%;
+  justify-content: initial;
+}
+
+.navbar-divider {
+  background-color: #444444;
+  height: 1px;
+}
+
+.navbar-icon-text {
+  font-size: 10px;
+}
+
 .is-divider {
   margin: 1.5rem 0;
 }
 
 #shi-main .is-divider {
   margin: 0.5rem 0;
-}
-
-/* https://github.com/jgthms/bulma/issues/1445#issuecomment-345503099 */
-.navbar-item {
-  display: flex;
-}
-
-.navbar,
-.navbar-menu,
-.navbar-start,
-.navbar-end {
-  align-items: stretch;
-  display: flex;
-  padding: 0;
-}
-
-.navbar-menu {
-  flex-grow: 1;
-  flex-shrink: 0;
-}
-
-.navbar-start {
-  justify-content: flex-start;
-  margin-right: auto;
-}
-
-.navbar-end {
-  justify-content: flex-end;
-  margin-left: auto;
 }
