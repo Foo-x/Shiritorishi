@@ -14,17 +14,17 @@ msgstr ""
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel/worker.ex:79
 msgid "word:already used"
-msgstr "「%{word}」はすでに使用されています。"
+msgstr "「%{word}」は最近使用されたようです。別の単語を入力してみてください。"
 
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel/worker.ex:70
 msgid "word:invalid first"
-msgstr "最初の文字を「%{last_char_hira}」または「%{last_char_kata}」で始める必要があります。"
+msgstr "最初の文字は「%{last_char_hira}」または「%{last_char_kata}」で始めてください。"
 
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel/worker.ex:73
 msgid "word:invalid last"
-msgstr "最後の文字に「ん」や「ン」を使用することはできません。"
+msgstr "「ん」や「ン」以外で終わる単語を入力してください。"
 
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel/worker.ex:65
@@ -34,19 +34,19 @@ msgstr "2文字以上、20文字以下の単語を入力してください。"
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel/worker.ex:49
 msgid "user:invalid"
-msgstr "名前は20文字以下にする必要があります。"
+msgstr "申し訳ありませんが、名前は20文字以下でお願いします。"
 
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel/worker.ex:76
 msgid "word:invalid char"
-msgstr "使用できる文字はひらがなとカタカナのみです。"
+msgstr "ひらがなとカタカナのみの単語を入力してください。"
 
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel/worker.ex:36
 msgid "db:error insert"
-msgstr "データベースへの追加時にエラーが発生しました。"
+msgstr "サーバーでエラーが発生したようです。時間を置いてもう一度試してみてください。"
 
 #, elixir-format
 #: lib/shiritorishi_web/channels/room_channel.ex:25
 msgid "job:error"
-msgstr "サーバーが混雑しています。"
+msgstr "サーバーが混雑しているようです。時間を置いてもう一度試してみてください。"
