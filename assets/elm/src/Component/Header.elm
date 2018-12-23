@@ -11,7 +11,9 @@ import Html.Events exposing (onClick)
 
 
 type alias Model =
-    HelpModal.Model
+    { isDropdownOpen : Bool
+    , helpModalModel : HelpModal.Model
+    }
 
 
 init : ( Model, Cmd Msg )
@@ -20,7 +22,11 @@ init =
         ( helpModalModel, helpModalCmd ) =
             HelpModal.init
     in
-    ( helpModalModel, Cmd.map HelpModalMsg helpModalCmd )
+    ( { isDropdownOpen = False
+      , helpModalModel = helpModalModel
+      }
+    , Cmd.map HelpModalMsg helpModalCmd
+    )
 
 
 type alias IconName =
@@ -79,9 +85,11 @@ view model =
             , div
                 [ class "navbar-end" ]
                 [ div
-                    [ class "navbar-item has-dropdown is-hoverable" ]
+                    [ hasDropdownClass model.isDropdownOpen
+                    ]
                     [ button
                         [ class "navbar-link button transparent is-arrowless"
+                        , onClick ToggleDropdown
                         ]
                         [ iconWithText "fa-ellipsis-v" "その他" ]
                     , div
@@ -119,7 +127,7 @@ view model =
                     ]
                 ]
             ]
-        , Html.map HelpModalMsg <| HelpModal.view model
+        , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
         ]
 
 
@@ -129,6 +137,19 @@ brandLogo =
     , width 125
     , height 32
     ]
+
+
+hasDropdownClass : Bool -> Attribute Msg
+hasDropdownClass isDropdownOpen =
+    let
+        defaultClass =
+            "navbar-item has-dropdown"
+    in
+    if isDropdownOpen then
+        class <| defaultClass ++ " is-active"
+
+    else
+        class <| defaultClass
 
 
 iconWithText : IconName -> IconText -> Html Msg
@@ -156,15 +177,19 @@ iconWithText name iconText =
 
 
 type Msg
-    = HelpModalMsg HelpModal.Msg
+    = ToggleDropdown
+    | HelpModalMsg HelpModal.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ToggleDropdown ->
+            ( { model | isDropdownOpen = not model.isDropdownOpen }, Cmd.none )
+
         HelpModalMsg subMsg ->
             let
                 ( subModel, subCmd ) =
-                    HelpModal.update subMsg model
+                    HelpModal.update subMsg model.helpModalModel
             in
-            ( subModel, Cmd.map HelpModalMsg subCmd )
+            ( { model | helpModalModel = subModel }, Cmd.map HelpModalMsg subCmd )
