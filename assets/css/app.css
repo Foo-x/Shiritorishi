@@ -9,7 +9,7 @@
 
 #shi-main {
   flex: 1;
-  padding: 1.5rem 1.5rem 0.5rem;
+  padding: 0.5rem 1.5rem 0.5rem;
 }
 
 #shi-replies-box {
@@ -38,7 +38,8 @@
 
 #shi-footer {
   background-color: initial;
-  padding: 1.5rem;
+  padding: 0.5rem;
+  padding-bottom: 1.5rem;
 }
 
 #shi-invalid-message {
@@ -186,6 +187,10 @@ a.dropdown-item {
 
 .is-divider {
   margin: 1.5rem 0;
+}
+
+#shi-main .is-divider {
+  margin: 0.5rem 0;
 }
 
 /* https://github.com/jgthms/bulma/issues/1445#issuecomment-345503099 */

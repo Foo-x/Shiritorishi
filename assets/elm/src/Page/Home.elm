@@ -1,6 +1,7 @@
 module Page.Home exposing (Model, Msg, init, subscriptions, toSession, update, view)
 
 import Array
+import Basics.Ext exposing (flip)
 import Browser
 import Browser.Dom as Dom
 import Browser.Events as BEvents
@@ -29,7 +30,7 @@ type alias Model =
     , publicReplies : List ReplyWithMaxHeight
     , user : String
     , word : String
-    , height : Float
+    , height : Maybe Float
     , userCount : Int
     , userValidity : Validity
     , wordValidity : Validity
@@ -78,7 +79,7 @@ init session =
       , publicReplies = [ replyWithMaxHeightConstructor (Reply "\u{3000}" "\u{3000}" "\u{3000}" "\u{3000}") Nothing ]
       , user = "\u{3000}"
       , word = ""
-      , height = 0
+      , height = Nothing
       , userCount = 1
       , userValidity = Valid
       , wordValidity = Valid
@@ -102,7 +103,7 @@ init session =
 
 footerHeight : Float
 footerHeight =
-    181
+    165
 
 
 publicRepliesMaxLength : Int
@@ -270,9 +271,12 @@ headerView headerModel =
     Html.map HeaderMsg <| Header.view headerModel
 
 
-createHeightStr : Float -> String
+createHeightStr : Maybe Float -> String
 createHeightStr height =
-    String.fromFloat height ++ "px"
+    height
+        |> Maybe.map String.fromFloat
+        |> Maybe.map (flip (++) "px")
+        |> Maybe.withDefault "0px"
 
 
 latestWord : List ReplyWithMaxHeight -> Html msg
@@ -666,7 +670,7 @@ update msg model =
 
         UpdateHeight result ->
             result
-                |> Result.map (\element -> { model | height = calcHeight element })
+                |> Result.map (\element -> { model | height = Just <| calcHeight element })
                 |> Result.withDefault model
                 |> (\newModel -> ( newModel, Cmd.none ))
 
