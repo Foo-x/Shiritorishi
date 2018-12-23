@@ -116,6 +116,25 @@ html, body, .home-container, .home-container > .home-body {
   color: #f5f5f5;
 }
 
+.navbar-dropdown {
+  overflow: hidden;
+  display: block;
+  transition:
+    max-height .2s,
+    padding .2s,
+    border 0s step-start;
+
+  &[aria-hidden="true"] {
+    max-height: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  &:not([aria-hidden="true"]) {
+    max-height: 107px;
+  }
+}
+
 .navbar-dropdown-icon {
   justify-content: initial;
   width: initial;
@@ -271,6 +290,8 @@ button.navbar-link:focus:not(:active) {
 .navbar-dropdown > button {
   font-size: .875rem;
   width: 100%;
+  height: calc(1.5rem + 12px);
+  border: 0;
   justify-content: initial;
 }
 

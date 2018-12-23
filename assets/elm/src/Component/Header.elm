@@ -93,7 +93,15 @@ view model =
                         ]
                         [ iconWithText "fa-ellipsis-v" "その他" ]
                     , div
-                        [ class "navbar-dropdown is-right" ]
+                        [ id "shi-navbar-dropdown"
+                        , class "navbar-dropdown is-right"
+                        , attribute "aria-hidden" <|
+                            if model.isDropdownOpen then
+                                "false"
+
+                            else
+                                "true"
+                        ]
                         [ a
                             [ class "navbar-item" ]
                             [ span
