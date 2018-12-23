@@ -11,7 +11,7 @@
   flex: none;
   overflow: hidden;
   width: 50px;
-  padding: .75rem 0;
+  padding: 1.5rem 0;
   background-color: #292929;
   white-space: nowrap;
   transition: width .3s;
@@ -39,6 +39,10 @@
   color: #bf9c63 !important;
 }
 
+#shi-sidebar .is-divider {
+  border-color: #444444;
+}
+
 #shi-toggle-sidebar-button {
   position: absolute;
   width: 50px;
@@ -48,7 +52,6 @@
   border: none;
   border-top: 1px solid #444444;
   background-color: #292929;
-  box-shadow: none;
   transition: width .3s;
 }
 
@@ -57,7 +60,11 @@
   transition: width .3s;
 }
 
-#shi-toggle-sidebar-button .icon {
+#shi-sidebar button {
+  box-shadow: none;
+}
+
+#shi-sidebar .icon {
   margin: 0;
 }
 

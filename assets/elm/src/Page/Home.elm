@@ -5,6 +5,7 @@ import Browser
 import Browser.Dom as Dom
 import Browser.Events as BEvents
 import Component.Header as Header
+import Component.HelpModal as HelpModal
 import Dict exposing (Dict)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -35,6 +36,7 @@ type alias Model =
     , wordValidity : Validity
     , invalidMessage : String
     , headerModel : Header.Model
+    , helpModalModel : HelpModal.Model
     , searchDropdownActiveIndex : Maybe Index
     , isSidebarOpen : Bool
     }
@@ -72,6 +74,9 @@ init session =
     let
         ( headerModel, headerCmd ) =
             Header.init
+
+        ( helpModalModel, helpModalCmd ) =
+            HelpModal.init
     in
     ( { session = session
 
@@ -85,11 +90,13 @@ init session =
       , wordValidity = Valid
       , invalidMessage = ""
       , headerModel = headerModel
+      , helpModalModel = helpModalModel
       , searchDropdownActiveIndex = Nothing
       , isSidebarOpen = False
       }
     , Cmd.batch
         [ Cmd.map HeaderMsg headerCmd
+        , Cmd.map HelpModalMsg helpModalCmd
         , Websocket.websocketListen ( "room:lobby", "public_replies" )
         , Websocket.websocketListen ( "room:lobby", "presence_diff" )
         , Task.perform identity (Task.succeed FetchPublicReplies)
@@ -174,8 +181,29 @@ view model =
                                         [ text "お絵描きしりとり" ]
                                     ]
                                 ]
+                            , div
+                                [ class "is-divider" ]
+                                []
+                            , li
+                                []
+                                [ button
+                                    [ class "button transparent"
+                                    , onClick (HelpModalMsg HelpModal.Activate)
+                                    ]
+                                    [ span
+                                        [ class "icon has-text-grey-light" ]
+                                        [ i
+                                            [ class "fas fa-info-circle" ]
+                                            []
+                                        ]
+                                    , span
+                                        [ class "sidebar-item-name has-text-grey-light" ]
+                                        [ text "ルール" ]
+                                    ]
+                            ]
                             ]
                         , Lazy.lazy toggleSidebarButtonView model.isSidebarOpen
+                        , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
                         ]
                     , div
                         [ class "column content" ]
@@ -745,6 +773,7 @@ type Msg
     | WebsocketReceive ( String, String, D.Value )
       -- About imported msg
     | HeaderMsg Header.Msg
+    | HelpModalMsg HelpModal.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -926,6 +955,13 @@ update msg model =
                     Header.update subMsg model.headerModel
             in
             ( { model | headerModel = subModel }, Cmd.map HeaderMsg subCmd )
+
+        HelpModalMsg subMsg ->
+            let
+                ( subModel, subCmd ) =
+                    HelpModal.update subMsg model.helpModalModel
+            in
+            ( { model | helpModalModel = subModel }, Cmd.map HelpModalMsg subCmd )
 
 
 updateHeight : Cmd Msg
