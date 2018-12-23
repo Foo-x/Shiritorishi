@@ -19,71 +19,6 @@ $navbar-dropdown-item-active-color: $navbar-active-color;
   padding: initial;
 }
 
-#shi-sidebar {
-  flex: none;
-  overflow: hidden;
-  position: fixed;
-  top: 52px;
-  bottom: 0;
-  width: 50px;
-  z-index: 100;
-  padding: 1.5rem 0;
-  background-color: #292929;
-  white-space: nowrap;
-  transition: width .3s;
-}
-
-#shi-sidebar.is-open {
-  width: 120px;
-  transition: width .3s;
-}
-
-#shi-sidebar .menu-list li:hover {
-  filter: brightness(125%);
-}
-
-#shi-sidebar .menu-list a:hover {
-  background-color: initial;
-}
-
-#shi-sidebar .menu-list li.is-active-page {
-  box-shadow: inset 4px 0 0 -2px #bf9c63;
-}
-
-#shi-sidebar .menu-list li.is-active-page .icon,
-#shi-sidebar .menu-list li.is-active-page .sidebar-item-name {
-  color: #bf9c63 !important;
-}
-
-#shi-sidebar .is-divider {
-  border-color: #444444;
-}
-
-#shi-toggle-sidebar-button {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  bottom: 0;
-  padding: 0 .75em;
-  border: none;
-  border-top: 1px solid #444444;
-  background-color: #292929;
-  transition: width .3s;
-}
-
-#shi-sidebar.is-open #shi-toggle-sidebar-button {
-  width: 120px;
-  transition: width .3s;
-}
-
-#shi-sidebar button {
-  box-shadow: none;
-}
-
-#shi-sidebar .icon {
-  margin: 0;
-}
-
 #shi-main {
   flex: 1;
   padding: 0.5rem 1.5rem 0.5rem;
@@ -253,20 +188,22 @@ html, body, .home-container, .home-container > .home-body {
   display: none;
 }
 
-.sidebar-item-name {
-  visibility: hidden;
-  padding-left: .25rem;
-  transition: visibility 0.1s step-start;
-}
-
-#shi-sidebar.is-open .sidebar-item-name {
-  visibility: initial;
-  transition: visibility 0.1s step-end;
-}
-
 .shi-search-word-line > div {
   padding-left: 0;
   padding-right: 0;
+}
+
+.navbar-dropdown-icon {
+  justify-content: initial;
+  width: initial;
+}
+
+.navbar-dropdown-itemname {
+  padding-left: .25rem;
+}
+
+.navbar-icon-text {
+  font-size: 10px;
 }
 
 @media screen and (min-width: 769px), print {
@@ -280,10 +217,6 @@ html, body, .home-container, .home-container > .home-body {
 }
 
 @media screen and (max-width: 768px) {
-  #shi-sidebar {
-    display: none;
-  }
-
   .shi-search-word-line > div:nth-last-child(n + 3) {
     padding-bottom: 0;
   }
@@ -330,15 +263,6 @@ button.navbar-link:focus:not(:active) {
   border-top-color: #444444;
 }
 
-.navbar-dropdown-icon {
-  justify-content: initial;
-  width: initial;
-}
-
-.navbar-dropdown-itemname {
-  padding-left: .25rem;
-}
-
 .navbar-dropdown > a.navbar-item:hover {
   background-color: initial;
   filter: brightness(125%);
@@ -353,10 +277,6 @@ button.navbar-link:focus:not(:active) {
 .navbar-divider {
   background-color: #444444;
   height: 1px;
-}
-
-.navbar-icon-text {
-  font-size: 10px;
 }
 
 .is-divider {

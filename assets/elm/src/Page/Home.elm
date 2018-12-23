@@ -39,7 +39,6 @@ type alias Model =
     , headerModel : Header.Model
     , helpModalModel : HelpModal.Model
     , searchDropdownActiveIndex : Maybe Index
-    , isSidebarOpen : Bool
     }
 
 
@@ -93,7 +92,6 @@ init session =
       , headerModel = headerModel
       , helpModalModel = helpModalModel
       , searchDropdownActiveIndex = Nothing
-      , isSidebarOpen = False
       }
     , Cmd.batch
         [ Cmd.map HeaderMsg headerCmd
@@ -144,70 +142,7 @@ view model =
             , div
                 [ class "columns home-body" ]
                 [ div
-                    [ id "shi-sidebar"
-                    , sidebarClass model.isSidebarOpen
-                    ]
-                    [ ul
-                        [ class "menu-list" ]
-                        [ li
-                            -- TODO: URLに応じたis-active-pageをつける
-                            [ class "is-active-page" ]
-                            [ a
-                                [ href "/" ]
-                                [ span
-                                    [ class "icon has-text-grey-light" ]
-                                    [ i
-                                        [ class "fas fa-home" ]
-                                        []
-                                    ]
-                                , span
-                                    [ class "sidebar-item-name has-text-grey-light" ]
-                                    [ text "ノーマル" ]
-                                ]
-                            ]
-                        , li
-                            []
-                            [ a
-                                []
-                                [ span
-                                    [ class "icon has-text-grey-light" ]
-                                    [ i
-                                        [ class "fas fa-paint-brush" ]
-                                        []
-                                    ]
-                                , span
-                                    [ class "sidebar-item-name has-text-grey-light" ]
-                                    [ text "お絵描き" ]
-                                ]
-                            ]
-                        , div
-                            [ class "is-divider" ]
-                            []
-                        , li
-                            []
-                            [ button
-                                [ class "button transparent"
-                                , onClick (HelpModalMsg HelpModal.Activate)
-                                ]
-                                [ span
-                                    [ class "icon has-text-grey-light" ]
-                                    [ i
-                                        [ class "fas fa-info-circle" ]
-                                        []
-                                    ]
-                                , span
-                                    [ class "sidebar-item-name has-text-grey-light" ]
-                                    [ text "ルール" ]
-                                ]
-                            ]
-                        ]
-                    , Lazy.lazy toggleSidebarButtonView model.isSidebarOpen
-                    , Html.map HelpModalMsg <| HelpModal.view model.helpModalModel
-                    ]
-                , div
-                    [ class "column content"
-                    , onClick CloseSidebar
-                    ]
+                    [ class "column content" ]
                     [ section
                         [ id "shi-main"
                         , class "section"
@@ -344,55 +279,6 @@ view model =
 headerView : Header.Model -> Html Msg
 headerView headerModel =
     Html.map HeaderMsg <| Header.view headerModel
-
-
-sidebarClass : Bool -> Attribute msg
-sidebarClass isSidebarOpen =
-    let
-        defaultClass =
-            "column menu"
-    in
-    if isSidebarOpen then
-        class <| defaultClass ++ " is-open"
-
-    else
-        class <| defaultClass
-
-
-toggleSidebarButtonView : Bool -> Html Msg
-toggleSidebarButtonView isSidebarOpen =
-    button
-        [ id "shi-toggle-sidebar-button"
-        , class "button"
-        , onClick ToggleSidebar
-        ]
-        -- 動的にiconを作るとランタイムエラーが発生するので、両方用意してdisplayをtoggleする
-        [ span
-            [ toggleSidebarButtonIconClass <| not isSidebarOpen ]
-            [ i
-                [ class "fas fa-lg fa-angle-double-right" ]
-                []
-            ]
-        , span
-            [ toggleSidebarButtonIconClass <| isSidebarOpen ]
-            [ i
-                [ class "fas fa-lg fa-angle-double-left" ]
-                []
-            ]
-        ]
-
-
-toggleSidebarButtonIconClass : Bool -> Attribute Msg
-toggleSidebarButtonIconClass visible =
-    let
-        defaultClass =
-            "icon is-medium has-text-grey-light"
-    in
-    if visible then
-        class <| defaultClass
-
-    else
-        class <| defaultClass ++ " display-none"
 
 
 createHeightStr : Maybe Float -> String
@@ -765,8 +651,6 @@ type Msg
     | KeyDown Int
     | FindSearchWordLineAndToggle Index
     | ToggleSearchWordLine Index (Result Dom.Error Dom.Viewport)
-    | ToggleSidebar
-    | CloseSidebar
       -- About LocalStorage
     | ReceiveFromLocalStorage ( String, D.Value )
     | SaveUser String
@@ -852,12 +736,6 @@ update msg model =
                 |> Result.map (.scene >> .height)
                 |> Result.map (\maxHeight -> ( { model | publicReplies = updatePublicReplies maxHeight }, Cmd.none ))
                 |> Result.withDefault ( model, Cmd.none )
-
-        ToggleSidebar ->
-            ( { model | isSidebarOpen = not model.isSidebarOpen }, Cmd.none )
-
-        CloseSidebar ->
-            ( { model | isSidebarOpen = False }, Cmd.none )
 
         ReceiveFromLocalStorage ( "user", value ) ->
             D.decodeValue (D.nullable D.string) value
