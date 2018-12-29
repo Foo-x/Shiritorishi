@@ -17,6 +17,7 @@ import Json.Encode as E
 import Maybe.Ext as MaybeExt
 import Ports.LocalStorage as LocalStorage
 import Ports.Websocket as Websocket
+import Process
 import Reply exposing (Reply, replyDecoder, replyEncoder)
 import Store.Session exposing (Session)
 import Task
@@ -98,8 +99,8 @@ init session =
         , Cmd.map HelpModalMsg helpModalCmd
         , Websocket.websocketListen ( "room:lobby", "public_replies" )
         , Websocket.websocketListen ( "room:lobby", "presence_diff" )
-        , Task.perform identity (Task.succeed FetchPublicReplies)
-        , Task.perform identity (Task.succeed <| SetStorageGetItem "user")
+        , Task.perform identity (Process.sleep 0 |> Task.map (\_ -> FetchPublicReplies))
+        , Task.perform identity (Process.sleep 0 |> Task.map (\_ -> SetStorageGetItem "user"))
         , Websocket.websocketListen ( "room:lobby", "new_msg" )
         , Websocket.websocketListen ( "room:lobby", "invalid_user" )
         , Websocket.websocketListen ( "room:lobby", "invalid_word" )
