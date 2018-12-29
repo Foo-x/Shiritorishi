@@ -4,6 +4,7 @@ import Browser
 import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Page.Drawing as Drawing
 import Page.Home as Home
 import Page.NotFound as NotFound
 import Route exposing (Route)
@@ -18,6 +19,7 @@ import Url
 type Model
     = NotFound Session
     | Home Home.Model
+    | Drawing Session
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -43,6 +45,9 @@ view model =
             { title = title
             , body = List.map (Html.map HomeMsg) body
             }
+
+        Drawing session ->
+            Drawing.view
 
 
 
@@ -86,6 +91,9 @@ toSession model =
         Home home ->
             Home.toSession home
 
+        Drawing session ->
+            session
+
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
@@ -100,6 +108,9 @@ changeRouteTo maybeRoute model =
         Just Route.Home ->
             Home.init session
                 |> updateWith Home HomeMsg
+
+        Just Route.Drawing ->
+            ( Drawing session, Cmd.none )
 
 
 updateWith : (subModel -> Model) -> (subMsg -> Msg) -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )

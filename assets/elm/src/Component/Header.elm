@@ -4,6 +4,7 @@ import Component.HelpModal as HelpModal
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
+import Route
 
 
 
@@ -76,7 +77,7 @@ view model =
                 , div
                     [ class "navbar-item is-tab" ]
                     [ a
-                        [ href "/"
+                        [ Route.href Route.Drawing
                         , class "button transparent"
                         ]
                         [ iconWithText "fa-paint-brush" "お絵描き" ]

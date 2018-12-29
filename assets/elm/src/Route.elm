@@ -3,7 +3,7 @@ module Route exposing (Route(..), fromUrl, href)
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Url exposing (Url)
-import Url.Parser exposing (Parser, map, oneOf, parse, top)
+import Url.Parser exposing (Parser, map, oneOf, parse, s, top)
 
 
 
@@ -12,12 +12,15 @@ import Url.Parser exposing (Parser, map, oneOf, parse, top)
 
 type Route
     = Home
+    | Drawing
 
 
 matchers : Parser (Route -> a) a
 matchers =
     oneOf
-        [ map Home top ]
+        [ map Home top
+        , map Drawing <| s "drawing"
+        ]
 
 
 fromUrl : Url -> Maybe Route
@@ -36,3 +39,6 @@ toString route =
     case route of
         Home ->
             "/"
+
+        Drawing ->
+            "/drawing"
