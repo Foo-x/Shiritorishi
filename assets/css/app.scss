@@ -161,11 +161,19 @@ html, body, .home-outside-container, .home-inside-container {
   .shi-search-word-line > div:nth-last-child(n + 5) {
     padding-bottom: 0;
   }
+
+  #shi-replies th {
+    width: 50%;
+  }
 }
 
 @media screen and (max-width: 768px) {
   .shi-search-word-line > div:nth-last-child(n + 3) {
     padding-bottom: 0;
+  }
+
+  #shi-replies th {
+    width: 40%;
   }
 }
 
