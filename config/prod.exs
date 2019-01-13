@@ -15,7 +15,14 @@ use Mix.Config
 # which you typically run after static files are built.
 config :shiritorishi, ShiritorishiWeb.Endpoint,
   load_from_system_env: true,
-  url: [host: "example.com", port: 80],
+  url: [host: "example.com"],
+  https: [
+    port: 443,
+    otp_app: :shiritorishi,
+    keyfile: "priv/cert/privkey1.pem",
+    certfile: "priv/cert/fullchain1.pem"
+  ],
+  force_ssl: [hsts: true],
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Do not print debug messages in production
